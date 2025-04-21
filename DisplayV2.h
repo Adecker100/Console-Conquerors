@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Object.h"
 #include <vector>
 #include <string>
 
@@ -19,19 +20,22 @@ public:
 	void addMapGraphic(int, int, string, int);
 	void addMapString(int, int, string, int);
 	void drawScreen();
+	void addBorder(char, int);
 	void clearScreen();
-	void clearBuffer();
+	void clearScreenBuffer();
 	void clearMap();
+	void moveViewer(Coordinates);
+	void setMapSize(int, int);
+	Coordinates getViewerCoords();
 private:
 	int screenWidth;
 	int screenHeight;
 	int mapWidth;
 	int mapHeight;
-	int viewerX;
-	int viewerY;
+	Coordinates viewer;
 	vector<vector<Pixel>> map;
 	vector<vector<Pixel>> screenBuffer;
 	vector<vector<Pixel>> previousFrame;
-	void setConsoleCursorPosition(int, int, int);
+	void setConCurPosition(int, int, int);
 };
 

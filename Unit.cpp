@@ -11,43 +11,43 @@ Unit::Unit(string inputUnitType) {
 }
 
 float Unit::getHealth() {
-
+	return health;
 }
 
 string Unit::getUnitType() {
-
+	return unitType;
 }
 
 string Unit::getAttackType() {
-
+	return attackType;
 }
 
 int Unit::getUnitCost() {
-
+	return unitCost;
 }
 
 int Unit::getAttackDamage() {
-
+	return attackDamage;
 }
 
 float Unit::getAttackRange() {
-
+	return attackRange;
 }
 
 float Unit::getAttackSpeed() {
-
+	return attackSpeed;
 }
 
 float Unit::getMoveSpeed() {
-
+	return moveSpeed;
 }
 
 time_point<steady_clock> Unit::getLastMoveTime() {
-
+	return lastMoveTime;
 }
 
 time_point<steady_clock> Unit::getLastAttackTime() {
-
+	return lastAttackTime;
 }
 
 void Unit::setHealth(float newHealth) {
