@@ -4,11 +4,52 @@ using namespace std;
 
 Tower::Tower() {
 	setObjectType("Tower");
+	towerType = "Uninitialized Tower";
 	numUnits = 0;
+	maxUnits = 0;
+	health = 100.0;
+	healthIncrease = 0.0;
+	rangeIncrease = 0.0;
+	towerSize = 0;
 }
 
-Tower::Tower(string inputTowerType) {
+Tower::Tower(string inputTowerType, Coordinates inputMapLocation) {
+	setObjectType("Tower");
+	setMapLocation(inputMapLocation);
+	towerType = inputTowerType;
+	numUnits = 0;
 
+	if (towerType == "Fortified Position") {
+		maxUnits = 10;
+		health = 500.0;
+		healthIncrease = 10.0;
+		rangeIncrease = 10.0;
+		towerSize = 0;
+	}
+
+	if (towerType == "Fort") {
+		maxUnits = 20;
+		health = 750.0;
+		healthIncrease = 25.0;
+		rangeIncrease = 20.0;
+		towerSize = 0;
+	}
+
+	if (towerType == "Tower") {
+		maxUnits = 20;
+		health = 1000.0;
+		healthIncrease = 50.0;
+		rangeIncrease = 75.0;
+		towerSize = 0;
+	}
+
+	if (towerType == "Castle") {
+		maxUnits = 30;
+		health = 2000.0;
+		healthIncrease = 100.0;
+		rangeIncrease = 50.0;
+		towerSize = 0;
+	}
 }
 
 float Tower::getHealth() {
@@ -72,10 +113,6 @@ void Tower::addUnit(Unit* newUnit) {
 		unitVector.push_back(newUnit);
 		numUnits++;
 	}
-}
-
-void Tower::releaseUnits() {
-
 }
 
 Unit* Tower::getUnit(int index) {

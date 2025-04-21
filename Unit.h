@@ -9,7 +9,7 @@ using namespace std::chrono;
 class Unit : public Object {
 public:
 	Unit();
-	Unit(string);
+	Unit(string, Coordinates);
 	float getHealth();
 	string getUnitType();
 	string getAttackType();
@@ -24,7 +24,7 @@ public:
 	void setMoveSpeed(float);
 	void setAttackSpeed(float);
 	void setAttackRange(float);
-	void setAttackDamage(float);
+	void setAttackDamage(int);
 	void setUnitCost(int);
 	void setAttackType(string);
 	void setLastAttackTime(time_point<steady_clock>);

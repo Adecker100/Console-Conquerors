@@ -7,7 +7,7 @@
 class Tower : public Object {
 public:
 	Tower();
-	Tower(string);
+	Tower(string, Coordinates);
 	float getHealth();
 	int getMaxUnits();
 	int getNumnUnits();
@@ -23,7 +23,6 @@ public:
 	void setTowerType(string);
 	void setTowerSize(int);
 	void addUnit(Unit*);
-	void releaseUnits();
 	Unit* getUnit(int);
 private:
 	float health;
