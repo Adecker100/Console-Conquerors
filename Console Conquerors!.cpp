@@ -9,14 +9,8 @@ using namespace std;
 int main()
 {
 	try {
-		DisplayV2 display1;
-		display1.drawScreen();
-			display1.clearScreen();
-			display1.drawScreen();
-			display1.addBorder('#', 13);
-			display1.drawScreen();
-			display1.addString(130, 40, "test.txt", 15);
-			display1.drawScreen();
+		Game game1;
+		game1.titleScreen();
 	}
 	catch (runtime_error& excpt) {
 		cout << excpt.what() << endl;
