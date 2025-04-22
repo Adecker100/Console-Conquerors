@@ -144,7 +144,20 @@
     <ClInclude Include="Unit.h" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="castle.txt" />
+    <Text Include="easy.txt" />
+    <Text Include="fort.txt" />
+    <Text Include="fortifiedPosition.txt" />
+    <Text Include="hard.txt" />
+    <Text Include="hardSelected.txt" />
+    <Text Include="instructions.txt" />
+    <Text Include="loadGame.txt" />
+    <Text Include="medium.txt" />
+    <Text Include="newGame.txt" />
+    <Text Include="newGameHeader.txt" />
+    <Text Include="selectDifficulty.txt" />
     <Text Include="Title.txt" />
+    <Text Include="tower.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

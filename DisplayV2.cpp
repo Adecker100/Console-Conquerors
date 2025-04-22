@@ -110,7 +110,7 @@ void DisplayV2::addMapGraphic(int graphicX, int graphicY, string fileName, int g
 	for (int y = graphicY; y < (graphicY + graphicHeight); y++) {
 		for (int x = graphicX; x < (graphicX + graphicWidth); x++) {
 			tempChar = fileInput.get();
-			if (tempChar == '\n') {
+			if (tempChar == '\n' || tempChar == ' ') {
 				tempChar = fileInput.get();
 			}
 			map.at(x).at(y).character = tempChar;
@@ -173,7 +173,7 @@ void DisplayV2::clearScreenBuffer() {
 void DisplayV2::clearMap() {
 	for (int x = 0; x < map.size(); x++) {
 		for (int y = 0; y < map.at(x).size(); y++) {
-			map.at(x).at(y) = Pixel{ ' ', 15 };
+			map.at(x).at(y) = Pixel{ '#', 2 };
 		}
 	}
 }
@@ -188,7 +188,15 @@ void DisplayV2::setMapSize(int newMapWidth, int newMapHeight) {
 	mapHeight = newMapHeight;
 	map.resize(newMapWidth);
 	for (int x = 0; x < map.size(); x++) {
-		map.at(x).resize(newMapHeight, Pixel{ 'M', 14 });
+		map.at(x).resize(newMapHeight, Pixel{ '#', 2 });
+	}
+}
+
+void DisplayV2::renderViewer() {
+	for (int y = 10; y < screenHeight; y++) {
+		for (int x = 0; x < screenWidth; x++) {
+			screenBuffer.at(x).at(y) = map.at(x + viewer.x).at(y + viewer.y);
+		}
 	}
 }
 

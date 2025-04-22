@@ -14,14 +14,16 @@ public:
 	float getHealthIncrease();
 	float getRangeIncrease();
 	string getTowerType();
-	int getTowerSize();
+	int getTowerWidth();
+	int getTowerHeight();
 	void setHealth(float);
 	void setMaxUnits(int);
 	void setNumUnits(int);
 	void setHealthIncrease(float);
 	void setRangeIncrease(float);
 	void setTowerType(string);
-	void setTowerSize(int);
+	void setTowerWidth(int);
+	void setTowerHeight(int);
 	void addUnit(Unit*);
 	Unit* getUnit(int);
 private:
@@ -31,7 +33,8 @@ private:
 	float healthIncrease;
 	float rangeIncrease;
 	string towerType;
-	int towerSize;
+	int towerWidth;
+	int towerHeight;
 	vector<Unit*> unitVector;
 };
 

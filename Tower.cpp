@@ -10,7 +10,8 @@ Tower::Tower() {
 	health = 100.0;
 	healthIncrease = 0.0;
 	rangeIncrease = 0.0;
-	towerSize = 0;
+	towerWidth = 0;
+	towerHeight = 0;
 }
 
 Tower::Tower(string inputTowerType, Coordinates inputMapLocation) {
@@ -24,7 +25,8 @@ Tower::Tower(string inputTowerType, Coordinates inputMapLocation) {
 		health = 500.0;
 		healthIncrease = 10.0;
 		rangeIncrease = 10.0;
-		towerSize = 0;
+		towerWidth = 2;
+		towerHeight = 1;
 	}
 
 	if (towerType == "Fort") {
@@ -32,7 +34,8 @@ Tower::Tower(string inputTowerType, Coordinates inputMapLocation) {
 		health = 750.0;
 		healthIncrease = 25.0;
 		rangeIncrease = 20.0;
-		towerSize = 0;
+		towerWidth = 3;
+		towerHeight = 2;
 	}
 
 	if (towerType == "Tower") {
@@ -40,7 +43,8 @@ Tower::Tower(string inputTowerType, Coordinates inputMapLocation) {
 		health = 1000.0;
 		healthIncrease = 50.0;
 		rangeIncrease = 75.0;
-		towerSize = 0;
+		towerWidth = 5;
+		towerHeight = 3;
 	}
 
 	if (towerType == "Castle") {
@@ -48,7 +52,8 @@ Tower::Tower(string inputTowerType, Coordinates inputMapLocation) {
 		health = 2000.0;
 		healthIncrease = 100.0;
 		rangeIncrease = 50.0;
-		towerSize = 0;
+		towerWidth = 7;
+		towerHeight = 4;
 	}
 }
 
@@ -76,8 +81,12 @@ string Tower::getTowerType() {
 	return towerType;
 }
 
-int Tower::getTowerSize() {
-	return towerSize;
+int Tower::getTowerWidth() {
+	return towerWidth;
+}
+
+int Tower::getTowerHeight() {
+	return towerHeight;
 }
 
 void Tower::setHealth(float newHealth) {
@@ -104,8 +113,12 @@ void Tower::setTowerType(string newTowerType) {
 	towerType = newTowerType;
 }
 
-void Tower::setTowerSize(int newTowerSize) {
-	towerSize = newTowerSize;
+void Tower::setTowerWidth(int newTowerWidth) {
+	towerWidth = newTowerWidth;
+}
+
+void Tower::setTowerHeight(int newTowerHeight) {
+	towerHeight = newTowerHeight;
 }
 
 void Tower::addUnit(Unit* newUnit) {

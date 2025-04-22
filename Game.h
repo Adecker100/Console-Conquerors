@@ -9,6 +9,7 @@ using namespace std::chrono;
 
 class Game {
 public:
+	void startGame();
 	void titleScreen();
 	void diffSelect();
 	void instructMenu();
@@ -19,10 +20,10 @@ public:
 	void loadGame();
 	void saveGame();
 	void genMap();
-	void infoOverlay();
+	void renderOverlay();
 	void winGame();
 	void loseGame();
-	void unitBar();
+	void renderUnitBar();
 	char checkForInput();
 	char waitForInput();
 	void unitAction(Unit*);

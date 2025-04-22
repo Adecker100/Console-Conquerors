@@ -26,6 +26,7 @@ public:
 	void clearMap();
 	void moveViewer(Coordinates);
 	void setMapSize(int, int);
+	void renderViewer();
 	Coordinates getViewerCoords();
 private:
 	int screenWidth;

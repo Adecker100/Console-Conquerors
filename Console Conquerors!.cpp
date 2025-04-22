@@ -10,7 +10,7 @@ int main()
 {
 	try {
 		Game game1;
-		game1.titleScreen();
+		game1.startGame();
 	}
 	catch (runtime_error& excpt) {
 		cout << excpt.what() << endl;
