@@ -187,7 +187,7 @@ void Game::saveGame() {
 }
 
 void Game::genMap() {
-	int numTowers;
+	int numTowers = 0;
 	if (difficulty == "Easy") {
 		display1.setMapSize(300, 100);
 		numTowers = 50;
@@ -233,15 +233,24 @@ void Game::spawnTower() {
 
 	int prob = probRange(gen);
 
-	if (prob <= 3) {
-		objectVector.push_back(new Tower("Fortified Position", newTowerCoords));
-	}
-	else {
-		if (prob >= 7) {
-			objectVector.push_back(new Tower("Tower", newTowerCoords));
-		}
+	if (difficulty == "Easy") {
+		if (prob <= 3) { objectVector.push_back(new Tower("Fortified Position", newTowerCoords)); }
 		else {
-			objectVector.push_back(new Tower("Fort", newTowerCoords));
+			if (prob >= 7) { objectVector.push_back(new Tower("Tower", newTowerCoords)); }
+			else { objectVector.push_back(new Tower("Fort", newTowerCoords)); }}
+	}
+	if (difficulty == "Medium") {
+		if (prob <= 5) { objectVector.push_back(new Tower("Fortified Position", newTowerCoords)); }
+		else {
+			if (prob >= 9) { objectVector.push_back(new Tower("Tower", newTowerCoords)); }
+			else { objectVector.push_back(new Tower("Fort", newTowerCoords)); }
+		}
+	}
+	if (difficulty == "Hard") {
+		if (prob <= 7) { objectVector.push_back(new Tower("Fortified Position", newTowerCoords)); }
+		else {
+			if (prob == 10) { objectVector.push_back(new Tower("Tower", newTowerCoords)); }
+			else { objectVector.push_back(new Tower("Fort", newTowerCoords)); }
 		}
 	}
 
@@ -260,10 +269,23 @@ void Game::spawnTower() {
 		}
 		else {
 			for (int i = 0; i < objectVector.size(); i++) {
-				if (objectVector.at(i) != towerPtr) {
-
+				Tower* loopTowerPtr = dynamic_cast<Tower*>(objectVector.at(i));
+				int badLowRangeX = loopTowerPtr->getMapLocation().x - (loopTowerPtr->getTowerWidth() * 2);
+				int badHighRangeX = loopTowerPtr->getMapLocation().x + (loopTowerPtr->getTowerWidth() * 2);
+				int badLowRangeY = loopTowerPtr->getMapLocation().y - (loopTowerPtr->getTowerHeight() * 2);
+				int badHighRangeY = loopTowerPtr->getMapLocation().y + (loopTowerPtr->getTowerHeight() * 2);
+				if (loopTowerPtr != towerPtr) {
+					if (newTowerCoords.x > badLowRangeX && newTowerCoords.x < badHighRangeX) {
+						tooClose = true;
+					}
+					else if (newTowerCoords.y > badLowRangeY && newTowerCoords.y < badHighRangeY) {
+						tooClose = true;
+					}
 				}
 			}
+		}
+		if (tooClose) {
+			newTowerCoords = { xRange(gen),yRange(gen) };
 		}
 	}
 }
