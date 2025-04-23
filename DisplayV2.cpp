@@ -200,6 +200,11 @@ void DisplayV2::renderViewer() {
 	}
 }
 
+Coordinates DisplayV2::getMapSize() {
+	Coordinates mapSize = { mapWidth,mapHeight };
+	return mapSize;
+}
+
 Coordinates DisplayV2::getViewerCoords() {
 	return viewer;
 }

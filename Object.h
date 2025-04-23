@@ -12,7 +12,7 @@ struct Coordinates {
 
 class Object {
 public:
-    string getObjectType();
+    virtual string getObjectType();
     Coordinates getMapLocation();
     void setObjectType(string);
     void setMapLocation(Coordinates);

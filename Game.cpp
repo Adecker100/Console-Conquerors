@@ -1,6 +1,7 @@
 #include "Game.h"
 #include <conio.h>
 #include <random>
+#include <cmath>
 
 
 void Game::startGame() {
@@ -186,24 +187,84 @@ void Game::saveGame() {
 }
 
 void Game::genMap() {
-	random_device seed;
-	mt19937 gen(seed());
-	uniform_int_distribution<int> probRange(1, 10);
-
+	int numTowers;
 	if (difficulty == "Easy") {
-		uniform_int_distribution<int> xRange(1, 299);
-		uniform_int_distribution<int> yRange(1, 99);
 		display1.setMapSize(300, 100);
+		numTowers = 50;
 	}
 	if (difficulty == "Medium") {
-		uniform_int_distribution<int> xRange(1, 599);
-		uniform_int_distribution<int> yRange(1, 299);
 		display1.setMapSize(600, 300);
+		numTowers = 100;
 	}
 	if (difficulty == "Hard") {
-		uniform_int_distribution<int> xRange(1, 899);
-		uniform_int_distribution<int> yRange(1, 899);
 		display1.setMapSize(900, 900);
+		numTowers = 200;
+	}
+	spawnStartingTowers();
+	for (int i = 0; i < numTowers; i++) {
+		spawnTower();
+	}
+}
+
+void Game::spawnStartingTowers() {
+	Coordinates mapSize = display1.getMapSize();
+
+	//Spawn friendly Towers
+	objectVector.push_back(new Tower("Castle", { 12, (mapSize.y / 2) }));
+	objectVector.push_back(new Tower("Tower", { 12, ((mapSize.y / 2) + 12) }));
+	objectVector.push_back(new Tower("Tower", { 12, ((mapSize.y / 2) - 12) }));
+
+
+	//Spawn enemy Towers
+	objectVector.push_back(new Tower("Castle", { (mapSize.x - 12), (mapSize.y / 2) }));
+	objectVector.push_back(new Tower("Tower", { (mapSize.x - 12), ((mapSize.y / 2) + 12) }));
+	objectVector.push_back(new Tower("Tower", { (mapSize.x - 12), ((mapSize.y / 2) - 12) }));
+}
+
+void Game::spawnTower() {
+	Coordinates mapSize = display1.getMapSize();
+	random_device seed;
+	mt19937 gen(seed());
+	uniform_int_distribution<int> xRange(0, mapSize.x);
+	uniform_int_distribution<int> yRange(0, mapSize.y);
+	uniform_int_distribution<int> probRange(1, 10);
+
+	Coordinates newTowerCoords = { xRange(gen),yRange(gen) };
+
+	int prob = probRange(gen);
+
+	if (prob <= 3) {
+		objectVector.push_back(new Tower("Fortified Position", newTowerCoords));
+	}
+	else {
+		if (prob >= 7) {
+			objectVector.push_back(new Tower("Tower", newTowerCoords));
+		}
+		else {
+			objectVector.push_back(new Tower("Fort", newTowerCoords));
+		}
+	}
+
+	Tower* towerPtr = dynamic_cast<Tower*>(objectVector.at(objectVector.size() - 1));
+	bool tooClose = true;
+	int xTowerRange = towerPtr->getTowerWidth() * 2;
+	int yTowerRange = towerPtr->getTowerHeight() * 2;
+
+	while (tooClose) {
+		tooClose = false;
+		if (newTowerCoords.x < xTowerRange || (mapSize.x - newTowerCoords.x) < xTowerRange) {
+			tooClose = true;
+		}
+		else if (newTowerCoords.y < yTowerRange || (mapSize.y - newTowerCoords.y) < yTowerRange) {
+			tooClose = true;
+		}
+		else {
+			for (int i = 0; i < objectVector.size(); i++) {
+				if (objectVector.at(i) != towerPtr) {
+
+				}
+			}
+		}
 	}
 }
 

@@ -20,6 +20,8 @@ public:
 	void loadGame();
 	void saveGame();
 	void genMap();
+	void spawnTower();
+	void spawnStartingTowers();
 	void renderOverlay();
 	void winGame();
 	void loseGame();
