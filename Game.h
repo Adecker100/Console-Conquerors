@@ -23,7 +23,7 @@ public:
 	void spawnStartingTowers();
 	void spawnTower();
 	void mainLoop();
-	void renderOverlay();
+	void renderOverlay(Object*);
 	void winGame();
 	void loseGame();
 	void renderUnitBar();
@@ -31,14 +31,16 @@ public:
 	char waitForInput();
 	void unitAction(Unit*);
 	void towerAction(Tower*);
-	void vectorLoop();
+	void actionLoop();
 	void moveViewer();
-	void moveCursor();
+	void cursorAction();
 	void enemySpawn();
 private:
+	bool overlay = false;
 	string difficulty;
 	string selectedUnit;
 	DisplayV2 display1;
+	Cursor cursor1;
 	vector<Object*> objectVector;
 };
 

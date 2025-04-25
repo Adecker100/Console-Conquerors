@@ -72,5 +72,6 @@
     <Text Include="fort.txt" />
     <Text Include="tower.txt" />
     <Text Include="castle.txt" />
+    <Text Include="cursor.txt" />
   </ItemGroup>
 </Project>

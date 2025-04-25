@@ -7,9 +7,20 @@
 void Game::startGame() {
 	display1.drawScreen();
 	display1.clearScreen();
-	display1.addString(0, 0, "Please enlarge the console window, then press any key to continue", 15);
+	display1.addString(0, 0, "Please maximize the console window, then press any key to continue...", 15);
 	display1.drawScreen();
 	waitForInput();
+	display1.clearScreen();
+	display1.addString(5, 5, "Welcome to the game! If you are on Windows 11, please enter your console settings.", 15);
+	display1.drawScreen();
+	display1.addString(5, 7, "Ensure you are running the \"Windows Console Host\" rather than the default \"Windows Terminal\"", 15);
+	display1.drawScreen();
+	display1.addString(5, 20, "Use the arrow keys and the Enter key to interact with menus", 15);
+	display1.drawScreen();
+	display1.addString(5, 25, "Press any key to continue...", 15);
+	display1.drawScreen();
+	waitForInput();
+	display1.clearScreen();
 	display1.addBorder('#', 15);
 	display1.drawScreen();
 	for (int i = 0; i < 11; i++) {
@@ -20,8 +31,8 @@ void Game::startGame() {
 	}
 	display1.addBorder('#', 15);
 	display1.addGraphic(18, 10, "Title.txt", 10);
-	display1.addString(51, 35, "Console Conquerors! written by Alex Decker 2025", 15);
-	display1.addString(111, 45, "Press any key to continue...", 15);
+	display1.addString(60, 34, "Press any key to continue...", 15);
+	display1.addString(5, 46, "Console Conquerors! written by Alex Decker 2025", 15);
 	display1.drawScreen();
 	waitForInput();
 	display1.clearScreenBuffer();
@@ -188,6 +199,7 @@ void Game::saveGame() {
 
 void Game::genMap() {
 	int numTowers = 0;
+	objectVector.push_back(new Cursor);
 	if (difficulty == "Easy") {
 		display1.setMapSize(300, 100);
 		numTowers = 50;
@@ -290,7 +302,11 @@ void Game::spawnTower() {
 	}
 }
 
-void Game::renderOverlay() {
+void Game::mainLoop() {
+
+}
+
+void Game::renderOverlay(Object* objectPtr) {
 
 }
 
@@ -354,24 +370,153 @@ char Game::waitForInput() {
 	return static_cast<char>(ch);
 }
 
-void Game::unitAction(Unit*) {
+void Game::unitAction(Unit* unitPtr) {
+
+	if (unitPtr->getHealth() <= 0) {
+		if (unitPtr->getAlive()) {
+			unitPtr->setAlive(false);
+			random_device seed;
+			mt19937 gen(seed());
+			uniform_int_distribution<int> prob(1, 2);
+			display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y, "#", (prob(gen) * 2));
+		}
+	}
+	else {
+		bool canAttack = false;
+		for (int i = 0; i < objectVector.size(); i++) {
+			if (objectVector.at(i)->getEnemy() != unitPtr->getEnemy()) {
+				if (abs(objectVector.at(i)->getMapLocation().x - unitPtr->getMapLocation().x) <= unitPtr->getAttackRange()) {
+					if (abs(objectVector.at(i)->getMapLocation().y - unitPtr->getMapLocation().y) <= (unitPtr->getAttackRange() / 2)) {
+						canAttack = true;
+					}
+				}
+			}
+		}
+		if (canAttack) {
+			if ((steady_clock::now() - unitPtr->getLastAttackTime()) >= unitPtr->getAttackSpeed()) {
+				Object* closestEnemy = nullptr;
+				float closestEnemyDist = 100.0;
+				float enemyDist = 0.0;
+				float enemyXDist = 0.0;
+				float enemyYDist = 0.0;
+				for (int i = 0; i < objectVector.size(); i++) {
+					if (objectVector.at(i)->getEnemy() != unitPtr->getEnemy()) {
+						if (abs(objectVector.at(i)->getMapLocation().x - unitPtr->getMapLocation().x) <= unitPtr->getAttackRange()) {
+							if (abs(objectVector.at(i)->getMapLocation().y - unitPtr->getMapLocation().y) <= (unitPtr->getAttackRange() / 2)) {
+								enemyXDist = abs(objectVector.at(i)->getMapLocation().x - unitPtr->getMapLocation().x);
+								enemyYDist = abs(objectVector.at(i)->getMapLocation().y - unitPtr->getMapLocation().y) / 2;
+								enemyDist = sqrt((enemyXDist * enemyXDist) + (enemyYDist * enemyYDist));
+								if (enemyDist < closestEnemyDist) {
+									closestEnemyDist = enemyDist;
+									closestEnemy = objectVector.at(i);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		else {
+			if ((steady_clock::now() - unitPtr->getLastMoveTime()) >= unitPtr->getMoveSpeed()) {
+				Coordinates unitPosition = unitPtr->getMapLocation();
+				if (unitPtr->getEnemy()) {
+					unitPosition.x--;
+				}
+				else {
+					unitPosition.x++;
+				}
+				unitPtr->setMapLocation(unitPosition);
+				unitPtr->setLastMoveTime(steady_clock::now());
+			}
+		}
+	}
+}
+
+void Game::towerAction(Tower* towerPtr) {
 
 }
 
-void Game::towerAction(Tower*) {
-
-}
-
-void Game::vectorLoop() {
-
+void Game::actionLoop() {
+	for (int i = 0; i < objectVector.size(); i++) {
+		if (objectVector.at(i)->getObjectType() == "Unit") {
+			Unit* unitPtr = dynamic_cast<Unit*>(objectVector.at(i));
+			unitAction(unitPtr);
+		}
+		else if (objectVector.at(i)->getObjectType() == "Tower") {
+			Tower* towerPtr = dynamic_cast<Tower*>(objectVector.at(i));
+			towerAction(towerPtr);
+		}
+	}
+	cursorAction();
 }
 
 void Game::moveViewer() {
+	char ch = checkForInput();
+	Coordinates viewerCoords = display1.getViewerCoords();
+	Coordinates cursorCoords = cursor1.getMapLocation();
 
+	if (toupper(ch) == 'W') {
+		if (display1.getViewerCoords().y >= 0) {
+			viewerCoords.y--;
+			cursorCoords.y--;
+		}
+	}
+	if (toupper(ch) == 'S') {
+		if (display1.getViewerCoords().y < (display1.getMapSize().y - 40)) {
+			viewerCoords.y++;
+			cursorCoords.y++;
+		}
+	}
+	if (toupper(ch) == 'A') {
+		if (display1.getViewerCoords().x >= 0) {
+			viewerCoords.x--;
+			cursorCoords.x--;
+		}
+	}
+	if (toupper(ch) == 'D') {
+		if (display1.getViewerCoords().x < (display1.getMapSize().x - 150)) {
+			viewerCoords.x++;
+			cursorCoords.x++;
+		}
+	}
+
+	display1.setViewer(viewerCoords);
+	cursor1.setMapLocation(cursorCoords);
 }
 
-void Game::moveCursor() {
+void Game::cursorAction() {
+	char ch = checkForInput();
+	Coordinates cursorScreenLocation = cursor1.getScreenLocation();
+	Coordinates cursorMapLocation = cursor1.getMapLocation();
 
+	if (ch == '^') {
+		if (cursor1.getScreenLocation().y > 11) {
+			cursorScreenLocation.y--;
+			cursorMapLocation.y--;
+		}
+	}
+	if (ch == 'v') {
+		if (cursor1.getScreenLocation().y < 48) {
+			cursorScreenLocation.y++;
+			cursorMapLocation.y++;
+		}
+	}
+	if (ch == '<') {
+		if (cursor1.getScreenLocation().x > 2) {
+			cursorScreenLocation.x--;
+			cursorMapLocation.x--;
+		}
+	}
+	if (ch == '>') {
+		if (cursor1.getScreenLocation().x < 148) {
+			cursorScreenLocation.x++;
+			cursorMapLocation.x++;
+		}
+	}
+
+	cursor1.setScreenLocation(cursorScreenLocation);
+	cursor1.setMapLocation(cursorMapLocation);
+	display1.addMapGraphic((cursorMapLocation.x - 2), (cursorMapLocation.y - 1), "cursor.txt", 12);
 }
 
 void Game::enemySpawn() {

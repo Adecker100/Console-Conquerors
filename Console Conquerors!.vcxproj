@@ -145,6 +145,7 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="castle.txt" />
+    <Text Include="cursor.txt" />
     <Text Include="easy.txt" />
     <Text Include="fort.txt" />
     <Text Include="fortifiedPosition.txt" />

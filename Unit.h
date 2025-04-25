@@ -10,19 +10,19 @@ class Unit : public Object {
 public:
 	Unit();
 	Unit(string, Coordinates);
-	float getHealth();
 	string getUnitType();
 	string getAttackType();
 	int getUnitCost();
 	int getAttackDamage();
+	bool getAlive();
 	float getAttackRange();
-	float getAttackSpeed();
-	float getMoveSpeed();
+	duration<double> getAttackSpeed();
+	duration<double> getMoveSpeed();
 	time_point<steady_clock> getLastMoveTime();
 	time_point<steady_clock> getLastAttackTime();
-	void setHealth(float);
-	void setMoveSpeed(float);
-	void setAttackSpeed(float);
+	void setAlive(bool);
+	void setMoveSpeed(duration<double>);
+	void setAttackSpeed(duration<double>);
 	void setAttackRange(float);
 	void setAttackDamage(int);
 	void setUnitCost(int);
@@ -31,9 +31,9 @@ public:
 	void setLastMoveTime(time_point<steady_clock>);
 	void setUnitType(string);
 private:
-	float health;
-	float moveSpeed;
-	float attackSpeed;
+	bool alive = true;
+	duration<double> moveSpeed;
+	duration<double> attackSpeed;
 	float attackRange;
 	int attackDamage;
 	int unitCost;

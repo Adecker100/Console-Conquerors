@@ -7,7 +7,7 @@ Tower::Tower() {
 	towerType = "Uninitialized Tower";
 	numUnits = 0;
 	maxUnits = 0;
-	health = 100.0;
+	setHealth(100.0);
 	healthIncrease = 0.0;
 	rangeIncrease = 0.0;
 	towerWidth = 0;
@@ -22,7 +22,7 @@ Tower::Tower(string inputTowerType, Coordinates inputMapLocation) {
 
 	if (towerType == "Fortified Position") {
 		maxUnits = 10;
-		health = 500.0;
+		setHealth(500.0);
 		healthIncrease = 10.0;
 		rangeIncrease = 10.0;
 		towerWidth = 2;
@@ -31,7 +31,7 @@ Tower::Tower(string inputTowerType, Coordinates inputMapLocation) {
 
 	if (towerType == "Fort") {
 		maxUnits = 20;
-		health = 750.0;
+		setHealth(50.0);
 		healthIncrease = 25.0;
 		rangeIncrease = 20.0;
 		towerWidth = 3;
@@ -40,7 +40,7 @@ Tower::Tower(string inputTowerType, Coordinates inputMapLocation) {
 
 	if (towerType == "Tower") {
 		maxUnits = 20;
-		health = 1000.0;
+		setHealth(1000.0);
 		healthIncrease = 50.0;
 		rangeIncrease = 75.0;
 		towerWidth = 5;
@@ -49,7 +49,7 @@ Tower::Tower(string inputTowerType, Coordinates inputMapLocation) {
 
 	if (towerType == "Castle") {
 		maxUnits = 30;
-		health = 2000.0;
+		setHealth(2000.0);
 		healthIncrease = 100.0;
 		rangeIncrease = 50.0;
 		towerWidth = 7;
@@ -57,15 +57,11 @@ Tower::Tower(string inputTowerType, Coordinates inputMapLocation) {
 	}
 }
 
-float Tower::getHealth() {
-	return health;
-}
-
 int Tower::getMaxUnits() {
 	return maxUnits;
 }
 
-int Tower::getNumnUnits() {
+int Tower::getNumUnits() {
 	return numUnits;
 }
 
@@ -87,10 +83,6 @@ int Tower::getTowerWidth() {
 
 int Tower::getTowerHeight() {
 	return towerHeight;
-}
-
-void Tower::setHealth(float newHealth) {
-	health = newHealth;
 }
 
 void Tower::setMaxUnits(int newMaxUnits) {

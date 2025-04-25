@@ -24,7 +24,7 @@ public:
 	void clearScreen();
 	void clearScreenBuffer();
 	void clearMap();
-	void moveViewer(Coordinates);
+	void setViewer(Coordinates);
 	void setMapSize(int, int);
 	void renderViewer();
 	Coordinates getMapSize();

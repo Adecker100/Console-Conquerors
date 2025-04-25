@@ -178,7 +178,7 @@ void DisplayV2::clearMap() {
 	}
 }
 
-void DisplayV2::moveViewer(Coordinates newCoords) {
+void DisplayV2::setViewer(Coordinates newCoords) {
 	viewer.x = newCoords.x;
 	viewer.y = newCoords.y;
 }

@@ -8,15 +8,13 @@ class Tower : public Object {
 public:
 	Tower();
 	Tower(string, Coordinates);
-	float getHealth();
 	int getMaxUnits();
-	int getNumnUnits();
+	int getNumUnits();
 	float getHealthIncrease();
 	float getRangeIncrease();
 	string getTowerType();
 	int getTowerWidth();
 	int getTowerHeight();
-	void setHealth(float);
 	void setMaxUnits(int);
 	void setNumUnits(int);
 	void setHealthIncrease(float);
@@ -27,7 +25,6 @@ public:
 	void addUnit(Unit*);
 	Unit* getUnit(int);
 private:
-	float health;
 	int maxUnits;
 	int numUnits;
 	float healthIncrease;
