@@ -23,7 +23,8 @@ public:
 	void spawnStartingTowers();
 	void spawnTower();
 	void mainLoop();
-	void renderOverlay(Object*);
+	void renderOverlay();
+	void checkCursor(Object*);
 	void winGame();
 	void loseGame();
 	void renderUnitBar();
@@ -36,7 +37,9 @@ public:
 	void cursorAction();
 	void enemySpawn();
 private:
-	bool overlay = false;
+	time_point<steady_clock> lastEnemySpawnTime = steady_clock::now();
+	duration<double> enemySpawnSpeed;
+	Object* overlayObject = nullptr;
 	string difficulty;
 	string selectedUnit;
 	DisplayV2 display1;

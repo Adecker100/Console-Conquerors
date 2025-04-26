@@ -3,6 +3,7 @@
 Cursor::Cursor() {
     setObjectType("Cursor");
     screenLocation = { 75,30 };
+    setMapLocation({ 75,19 });
 }
 
 Coordinates Cursor::getScreenLocation() {

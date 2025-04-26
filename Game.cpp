@@ -2,6 +2,9 @@
 #include <conio.h>
 #include <random>
 #include <cmath>
+#include <iostream>
+
+using namespace std;
 
 
 void Game::startGame() {
@@ -199,23 +202,27 @@ void Game::saveGame() {
 
 void Game::genMap() {
 	int numTowers = 0;
-	objectVector.push_back(new Cursor);
 	if (difficulty == "Easy") {
 		display1.setMapSize(300, 100);
+		enemySpawnSpeed = duration<double>(1.5);
 		numTowers = 50;
 	}
 	if (difficulty == "Medium") {
 		display1.setMapSize(600, 300);
+		enemySpawnSpeed = duration<double>(1.0);
 		numTowers = 100;
 	}
 	if (difficulty == "Hard") {
 		display1.setMapSize(900, 900);
+		enemySpawnSpeed = duration<double>(0.5);
 		numTowers = 200;
 	}
+
 	spawnStartingTowers();
 	for (int i = 0; i < numTowers; i++) {
 		spawnTower();
 	}
+	mainLoop();
 }
 
 void Game::spawnStartingTowers() {
@@ -241,15 +248,18 @@ void Game::spawnTower() {
 	uniform_int_distribution<int> yRange(0, mapSize.y);
 	uniform_int_distribution<int> probRange(1, 10);
 
+	//Generate random coordinates for new tower
 	Coordinates newTowerCoords = { xRange(gen),yRange(gen) };
 
 	int prob = probRange(gen);
 
+	//Determine the probability of what type of tower will spawn
 	if (difficulty == "Easy") {
 		if (prob <= 3) { objectVector.push_back(new Tower("Fortified Position", newTowerCoords)); }
 		else {
 			if (prob >= 7) { objectVector.push_back(new Tower("Tower", newTowerCoords)); }
-			else { objectVector.push_back(new Tower("Fort", newTowerCoords)); }}
+			else { objectVector.push_back(new Tower("Fort", newTowerCoords)); }
+		}
 	}
 	if (difficulty == "Medium") {
 		if (prob <= 5) { objectVector.push_back(new Tower("Fortified Position", newTowerCoords)); }
@@ -267,31 +277,45 @@ void Game::spawnTower() {
 	}
 
 	Tower* towerPtr = dynamic_cast<Tower*>(objectVector.at(objectVector.size() - 1));
+
 	bool tooClose = true;
 	int xTowerRange = towerPtr->getTowerWidth() * 2;
 	int yTowerRange = towerPtr->getTowerHeight() * 2;
-
 	while (tooClose) {
 		tooClose = false;
+
+		//Check if tower is too close to x edge of map
 		if (newTowerCoords.x < xTowerRange || (mapSize.x - newTowerCoords.x) < xTowerRange) {
 			tooClose = true;
 		}
+
+		//Check if tower is too close to y edge of map
 		else if (newTowerCoords.y < yTowerRange || (mapSize.y - newTowerCoords.y) < yTowerRange) {
 			tooClose = true;
 		}
+
+		//Check if tower is too close to another tower
 		else {
 			for (int i = 0; i < objectVector.size(); i++) {
-				Tower* loopTowerPtr = dynamic_cast<Tower*>(objectVector.at(i));
-				int badLowRangeX = loopTowerPtr->getMapLocation().x - (loopTowerPtr->getTowerWidth() * 2);
-				int badHighRangeX = loopTowerPtr->getMapLocation().x + (loopTowerPtr->getTowerWidth() * 2);
-				int badLowRangeY = loopTowerPtr->getMapLocation().y - (loopTowerPtr->getTowerHeight() * 2);
-				int badHighRangeY = loopTowerPtr->getMapLocation().y + (loopTowerPtr->getTowerHeight() * 2);
-				if (loopTowerPtr != towerPtr) {
-					if (newTowerCoords.x > badLowRangeX && newTowerCoords.x < badHighRangeX) {
-						tooClose = true;
-					}
-					else if (newTowerCoords.y > badLowRangeY && newTowerCoords.y < badHighRangeY) {
-						tooClose = true;
+				if (objectVector.at(i)->getObjectType() == "Tower") {
+					Tower* loopTowerPtr = dynamic_cast<Tower*>(objectVector.at(i));
+
+					for (int i = 0; i < objectVector.size(); i++) {
+
+						Tower* loopTowerPtr = dynamic_cast<Tower*>(objectVector.at(i));
+						int badLowRangeX = loopTowerPtr->getMapLocation().x - (loopTowerPtr->getTowerWidth() * 2);
+						int badHighRangeX = loopTowerPtr->getMapLocation().x + (loopTowerPtr->getTowerWidth() * 2);
+						int badLowRangeY = loopTowerPtr->getMapLocation().y - (loopTowerPtr->getTowerHeight() * 2);
+						int badHighRangeY = loopTowerPtr->getMapLocation().y + (loopTowerPtr->getTowerHeight() * 2);
+
+						//Don't check the tower against itself, it will always be too close!
+						if (loopTowerPtr != towerPtr) {
+
+							//Check the distance to the other tower
+							if (newTowerCoords.x > badLowRangeX && newTowerCoords.x < badHighRangeX && newTowerCoords.y > badLowRangeY && newTowerCoords.y < badHighRangeY) {
+								tooClose = true;
+							}
+						}
 					}
 				}
 			}
@@ -300,14 +324,47 @@ void Game::spawnTower() {
 			newTowerCoords = { xRange(gen),yRange(gen) };
 		}
 	}
+	towerPtr->setMapLocation(newTowerCoords);
 }
 
 void Game::mainLoop() {
-
+	while (true) {
+		display1.clearMap();
+		cursorAction();
+		actionLoop();
+		enemySpawn();
+		moveViewer();
+		display1.renderViewer();
+		renderUnitBar();
+		renderOverlay();
+		display1.drawScreen();
+	}
 }
 
-void Game::renderOverlay(Object* objectPtr) {
+void Game::renderOverlay() {
+	if (overlayObject != nullptr) {
+		if (overlayObject->getObjectType() == "Tower") {
+			Tower* towerPtr = dynamic_cast<Tower*>(overlayObject);
+		}
+		if (overlayObject->getObjectType() == "Unit") {
+			Unit* unitPtr = dynamic_cast<Unit*>(overlayObject);
+		}
+	}
+}
 
+void Game::checkCursor(Object* objectPtr) {
+	char ch;
+	ch = checkForInput();
+	if (ch == '\n') {
+		if (abs(objectPtr->getMapLocation().x - cursor1.getMapLocation().x) <= 2) {
+			if (abs(objectPtr->getMapLocation().y - cursor1.getMapLocation().y) <= 1) {
+				overlayObject = objectPtr;
+			}
+		}
+		else {
+			overlayObject = nullptr;
+		}
+	}
 }
 
 void Game::winGame() {
@@ -378,7 +435,11 @@ void Game::unitAction(Unit* unitPtr) {
 			random_device seed;
 			mt19937 gen(seed());
 			uniform_int_distribution<int> prob(1, 2);
-			display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y, "#", (prob(gen) * 2));
+			unitPtr->setDeadColor(prob(gen) * 2);
+			display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y, "#", unitPtr->getDeadColor());
+		}
+		else {
+			display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y, "#", unitPtr->getDeadColor());
 		}
 	}
 	else {
@@ -404,7 +465,7 @@ void Game::unitAction(Unit* unitPtr) {
 						if (abs(objectVector.at(i)->getMapLocation().x - unitPtr->getMapLocation().x) <= unitPtr->getAttackRange()) {
 							if (abs(objectVector.at(i)->getMapLocation().y - unitPtr->getMapLocation().y) <= (unitPtr->getAttackRange() / 2)) {
 								enemyXDist = abs(objectVector.at(i)->getMapLocation().x - unitPtr->getMapLocation().x);
-								enemyYDist = abs(objectVector.at(i)->getMapLocation().y - unitPtr->getMapLocation().y) / 2;
+								enemyYDist = abs(objectVector.at(i)->getMapLocation().y - unitPtr->getMapLocation().y) / 2.0;
 								enemyDist = sqrt((enemyXDist * enemyXDist) + (enemyYDist * enemyYDist));
 								if (enemyDist < closestEnemyDist) {
 									closestEnemyDist = enemyDist;
@@ -429,11 +490,12 @@ void Game::unitAction(Unit* unitPtr) {
 				unitPtr->setLastMoveTime(steady_clock::now());
 			}
 		}
+		display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y, "E", 9);
 	}
 }
 
 void Game::towerAction(Tower* towerPtr) {
-
+	display1.addMapGraphic(towerPtr->getMapLocation().x - towerPtr->getTowerWidth(), towerPtr->getMapLocation().y - towerPtr->getTowerHeight(), "fortifiedPosition.txt", 6);
 }
 
 void Game::actionLoop() {
@@ -447,7 +509,6 @@ void Game::actionLoop() {
 			towerAction(towerPtr);
 		}
 	}
-	cursorAction();
 }
 
 void Game::moveViewer() {
@@ -455,25 +516,25 @@ void Game::moveViewer() {
 	Coordinates viewerCoords = display1.getViewerCoords();
 	Coordinates cursorCoords = cursor1.getMapLocation();
 
-	if (toupper(ch) == 'W') {
+	if (ch == 'W' || ch == 'w') {
 		if (display1.getViewerCoords().y >= 0) {
 			viewerCoords.y--;
 			cursorCoords.y--;
 		}
 	}
-	if (toupper(ch) == 'S') {
+	if (ch == 'S' || ch == 's') {
 		if (display1.getViewerCoords().y < (display1.getMapSize().y - 40)) {
 			viewerCoords.y++;
 			cursorCoords.y++;
 		}
 	}
-	if (toupper(ch) == 'A') {
+	if (ch == 'A' || ch == 'a') {
 		if (display1.getViewerCoords().x >= 0) {
 			viewerCoords.x--;
 			cursorCoords.x--;
 		}
 	}
-	if (toupper(ch) == 'D') {
+	if (ch == 'D' || ch == 'd') {
 		if (display1.getViewerCoords().x < (display1.getMapSize().x - 150)) {
 			viewerCoords.x++;
 			cursorCoords.x++;
@@ -520,5 +581,39 @@ void Game::cursorAction() {
 }
 
 void Game::enemySpawn() {
+	if (steady_clock::now() - lastEnemySpawnTime >= enemySpawnSpeed) {
+		random_device seed;
+		mt19937 gen(seed());
+		uniform_int_distribution<int> probRange(1, 100);
+		uniform_int_distribution<int> coordRange(0, display1.getMapSize().y);
 
+		int prob = probRange(gen);
+
+		if (difficulty == "Easy") {
+			if (prob <= 25) { objectVector.push_back(new Unit("Sword Guy!", {display1.getMapSize().x, coordRange(gen)})); }
+			if (prob >= 26 && prob <= 50) { objectVector.push_back(new Unit("Shield Man", { display1.getMapSize().x - 1, coordRange(gen) })); }
+			if (prob >= 51 && prob <= 75) { objectVector.push_back(new Unit("Archer", { display1.getMapSize().x - 1, coordRange(gen) })); }
+			if (prob >= 76 && prob <= 85) { objectVector.push_back(new Unit("Brute", { display1.getMapSize().x - 1, coordRange(gen) })); }
+			if (prob >= 86 && prob <= 90) { objectVector.push_back(new Unit("Catapult", { display1.getMapSize().x - 1, coordRange(gen) })); }
+			if (prob >= 91 && prob <= 100) { objectVector.push_back(new Unit("Engineer", { display1.getMapSize().x - 1, coordRange(gen) })); }
+		}
+		if (difficulty == "Medium") {
+			if (prob <= 10) { objectVector.push_back(new Unit("Sword Guy!", { display1.getMapSize().x - 1, coordRange(gen) })); }
+			if (prob >= 11 && prob <= 35) { objectVector.push_back(new Unit("Shield Man", { display1.getMapSize().x - 1, coordRange(gen) })); }
+			if (prob >= 36 && prob <= 60) { objectVector.push_back(new Unit("Archer", { display1.getMapSize().x - 1, coordRange(gen) })); }
+			if (prob >= 61 && prob <= 75) { objectVector.push_back(new Unit("Brute", { display1.getMapSize().x - 1, coordRange(gen) })); }
+			if (prob >= 76 && prob <= 85) { objectVector.push_back(new Unit("Catapult", { display1.getMapSize().x - 1, coordRange(gen) })); }
+			if (prob >= 86 && prob <= 100) { objectVector.push_back(new Unit("Engineer", { display1.getMapSize().x - 1, coordRange(gen) })); }
+		}
+		if (difficulty == "Hard") {
+			if (prob <= 5) { objectVector.push_back(new Unit("Sword Guy!", { display1.getMapSize().x - 1, coordRange(gen) })); }
+			if (prob >= 6 && prob <= 25) { objectVector.push_back(new Unit("Shield Man", { display1.getMapSize().x - 1, coordRange(gen) })); }
+			if (prob >= 26 && prob <= 55) { objectVector.push_back(new Unit("Archer", { display1.getMapSize().x - 1, coordRange(gen) })); }
+			if (prob >= 56 && prob <= 70) { objectVector.push_back(new Unit("Brute", { display1.getMapSize().x - 1, coordRange(gen) })); }
+			if (prob >= 71 && prob <= 85) { objectVector.push_back(new Unit("Catapult", { display1.getMapSize().x - 1, coordRange(gen) })); }
+			if (prob >= 86 && prob <= 100) { objectVector.push_back(new Unit("Engineer", { display1.getMapSize().x - 1, coordRange(gen) })); }
+		}
+		objectVector.at(objectVector.size() - 1)->setEnemy(true);
+		lastEnemySpawnTime = steady_clock::now();
+	}
 }

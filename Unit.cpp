@@ -6,8 +6,8 @@ Unit::Unit() {
 	setObjectType("Unit");
 	unitType = "Uninitialized Unit";
 	setHealth(0.0);
-	moveSpeed = duration <double>(0.0);
-	attackSpeed = duration <double>(0.0);
+	moveSpeed = duration<double>(0.0);
+	attackSpeed = duration<double>(0.0);
 	attackRange = 0;
 	attackDamage = 0;
 	unitCost = 0;
@@ -26,7 +26,7 @@ Unit::Unit(string inputUnitType, Coordinates inputMapLocation) {
 	if (unitType == "Sword Guy!") {
 		setHealth(100.0);
 		moveSpeed = duration<double>(1.0);
-		attackSpeed = duration <double>(1.5);
+		attackSpeed = duration<double>(1.5);
 		attackRange = 2;
 		attackDamage = 25;
 		unitCost = 1;
@@ -35,8 +35,8 @@ Unit::Unit(string inputUnitType, Coordinates inputMapLocation) {
 
 	if (unitType == "Archer") {
 		setHealth(50.0);
-		moveSpeed = duration <double>(0.50);
-		attackSpeed = duration <double>(3.0);
+		moveSpeed = duration<double>(0.50);
+		attackSpeed = duration<double>(3.0);
 		attackRange = 30;
 		attackDamage = 10;
 		unitCost = 2;
@@ -45,8 +45,8 @@ Unit::Unit(string inputUnitType, Coordinates inputMapLocation) {
 
 	if (unitType == "Shield Man") {
 		setHealth(150.0);
-		moveSpeed = duration <double>(1.25);
-		attackSpeed = duration <double>(2.0);
+		moveSpeed = duration<double>(1.25);
+		attackSpeed = duration<double>(2.0);
 		attackRange = 2;
 		attackDamage = 25;
 		unitCost = 3;
@@ -55,8 +55,8 @@ Unit::Unit(string inputUnitType, Coordinates inputMapLocation) {
 
 	if (unitType == "Brute") {
 		setHealth(200.0);
-		moveSpeed = duration <double>(1.75);
-		attackSpeed = duration <double>(3.0);
+		moveSpeed = duration<double>(1.75);
+		attackSpeed = duration<double>(3.0);
 		attackRange = 4;
 		attackDamage = 35;
 		unitCost = 4;
@@ -65,8 +65,8 @@ Unit::Unit(string inputUnitType, Coordinates inputMapLocation) {
 
 	if (unitType == "Catapult") {
 		setHealth(250.0);
-		moveSpeed = duration <double>(2.25);
-		attackSpeed = duration <double>(5.0);
+		moveSpeed = duration<double>(2.25);
+		attackSpeed = duration<double>(5.0);
 		attackRange = 20;
 		attackDamage = 50;
 		unitCost = 5;
@@ -75,8 +75,8 @@ Unit::Unit(string inputUnitType, Coordinates inputMapLocation) {
 
 	if (unitType == "Engineer") {
 		setHealth(50.0);
-		moveSpeed = duration <double>(1.0);
-		attackSpeed = duration <double>(3.5);
+		moveSpeed = duration<double>(1.0);
+		attackSpeed = duration<double>(3.5);
 		attackRange = 1;
 		attackDamage = 25;
 		unitCost = 4;
@@ -98,6 +98,10 @@ int Unit::getUnitCost() {
 
 int Unit::getAttackDamage() {
 	return attackDamage;
+}
+
+int Unit::getDeadColor() {
+	return deadColor;
 }
 
 bool Unit::getAlive() {
@@ -162,4 +166,8 @@ void Unit::setLastMoveTime(time_point<steady_clock> newTime) {
 
 void Unit::setUnitType(string newUnitType) {
 	unitType = newUnitType;
+}
+
+void Unit::setDeadColor(int newDeadColor) {
+	deadColor = newDeadColor;
 }

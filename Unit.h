@@ -14,6 +14,7 @@ public:
 	string getAttackType();
 	int getUnitCost();
 	int getAttackDamage();
+	int getDeadColor();
 	bool getAlive();
 	float getAttackRange();
 	duration<double> getAttackSpeed();
@@ -30,7 +31,9 @@ public:
 	void setLastAttackTime(time_point<steady_clock>);
 	void setLastMoveTime(time_point<steady_clock>);
 	void setUnitType(string);
+	void setDeadColor(int);
 private:
+	int deadColor = 0;
 	bool alive = true;
 	duration<double> moveSpeed;
 	duration<double> attackSpeed;

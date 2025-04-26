@@ -110,19 +110,21 @@ void DisplayV2::addMapGraphic(int graphicX, int graphicY, string fileName, int g
 	for (int y = graphicY; y < (graphicY + graphicHeight); y++) {
 		for (int x = graphicX; x < (graphicX + graphicWidth); x++) {
 			tempChar = fileInput.get();
-			if (tempChar == '\n' || tempChar == ' ') {
+			if (tempChar == '\n') {
 				tempChar = fileInput.get();
 			}
-			map.at(x).at(y).character = tempChar;
-			map.at(x).at(y).color = graphicColor;
+			if (tempChar != ' ') {
+				map.at(x).at(y).character = tempChar;
+				map.at(x).at(y).color = graphicColor;
+			}
 		}
 	}
 }
 
 void DisplayV2::addMapString(int stringX, int stringY, string inputString, int stringColor) {
 	for (int x = 0; x < inputString.size(); x++) {
-		screenBuffer.at(stringX + x).at(stringY).character = inputString[x];
-		screenBuffer.at(stringX + x).at(stringY).color = stringColor;
+		map.at(stringX + x).at(stringY).character = inputString[x];
+		map.at(stringX + x).at(stringY).color = stringColor;
 	}
 }
 
