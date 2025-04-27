@@ -3,6 +3,7 @@
 #include <random>
 #include <cmath>
 #include <iostream>
+#include <Windows.h>
 
 using namespace std;
 
@@ -222,6 +223,7 @@ void Game::genMap() {
 	for (int i = 0; i < numTowers; i++) {
 		spawnTower();
 	}
+	display1.clearScreen();
 	mainLoop();
 }
 
@@ -279,8 +281,8 @@ void Game::spawnTower() {
 	Tower* towerPtr = dynamic_cast<Tower*>(objectVector.at(objectVector.size() - 1));
 
 	bool tooClose = true;
-	int xTowerRange = towerPtr->getTowerWidth() * 2;
-	int yTowerRange = towerPtr->getTowerHeight() * 2;
+	int xTowerRange = towerPtr->getTowerWidth() * 3;
+	int yTowerRange = towerPtr->getTowerHeight() * 3;
 	while (tooClose) {
 		tooClose = false;
 
@@ -303,10 +305,10 @@ void Game::spawnTower() {
 					for (int i = 0; i < objectVector.size(); i++) {
 
 						Tower* loopTowerPtr = dynamic_cast<Tower*>(objectVector.at(i));
-						int badLowRangeX = loopTowerPtr->getMapLocation().x - (loopTowerPtr->getTowerWidth() * 2);
-						int badHighRangeX = loopTowerPtr->getMapLocation().x + (loopTowerPtr->getTowerWidth() * 2);
-						int badLowRangeY = loopTowerPtr->getMapLocation().y - (loopTowerPtr->getTowerHeight() * 2);
-						int badHighRangeY = loopTowerPtr->getMapLocation().y + (loopTowerPtr->getTowerHeight() * 2);
+						int badLowRangeX = loopTowerPtr->getMapLocation().x - ((loopTowerPtr->getTowerWidth() + towerPtr->getTowerWidth()) * 2);
+						int badHighRangeX = loopTowerPtr->getMapLocation().x + ((loopTowerPtr->getTowerWidth() + towerPtr->getTowerWidth()) * 2);
+						int badLowRangeY = loopTowerPtr->getMapLocation().y - ((loopTowerPtr->getTowerHeight() + towerPtr->getTowerHeight()) * 2);
+						int badHighRangeY = loopTowerPtr->getMapLocation().y + ((loopTowerPtr->getTowerHeight() + towerPtr->getTowerHeight()) * 2);
 
 						//Don't check the tower against itself, it will always be too close!
 						if (loopTowerPtr != towerPtr) {
@@ -330,13 +332,14 @@ void Game::spawnTower() {
 void Game::mainLoop() {
 	while (true) {
 		display1.clearMap();
-		cursorAction();
+		moveViewer();
 		actionLoop();
 		enemySpawn();
-		moveViewer();
+		cursorAction();
 		display1.renderViewer();
 		renderUnitBar();
 		renderOverlay();
+		display1.addBorder('#', 15);
 		display1.drawScreen();
 	}
 }
@@ -353,9 +356,7 @@ void Game::renderOverlay() {
 }
 
 void Game::checkCursor(Object* objectPtr) {
-	char ch;
-	ch = checkForInput();
-	if (ch == '\n') {
+	if (isNewKeyPress(VK_RETURN)) {
 		if (abs(objectPtr->getMapLocation().x - cursor1.getMapLocation().x) <= 2) {
 			if (abs(objectPtr->getMapLocation().y - cursor1.getMapLocation().y) <= 1) {
 				overlayObject = objectPtr;
@@ -379,29 +380,21 @@ void Game::renderUnitBar() {
 
 }
 
-char Game::checkForInput() {
-	if (_kbhit()) {
-		int ch = _getch();
+bool Game::isKeyPressed(int key) {
+	if (GetAsyncKeyState(key) & 0x8000) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
 
-		if (ch == 0 || ch == 224) {
-			int specialKey = _getch();
-
-			switch (specialKey) {
-			case 72: return '^';
-			case 80: return 'v';
-			case 75: return '<';
-			case 77: return '>';
-			default: return '?';
-			}
-		}
-
-		if (ch == 13) {
-			return '\n';
-		}
-
-		while (_kbhit()) _getch();
-
-		return static_cast<char>(ch);
+bool Game::isNewKeyPress(int key) {
+	if (GetAsyncKeyState(key) & 0x0001) {
+		return true;
+	}
+	else {
+		return false;
 	}
 }
 
@@ -495,7 +488,18 @@ void Game::unitAction(Unit* unitPtr) {
 }
 
 void Game::towerAction(Tower* towerPtr) {
-	display1.addMapGraphic(towerPtr->getMapLocation().x - towerPtr->getTowerWidth(), towerPtr->getMapLocation().y - towerPtr->getTowerHeight(), "fortifiedPosition.txt", 6);
+	if (towerPtr->getTowerType() == "Fortified Position") {
+		display1.addMapGraphic(towerPtr->getMapLocation().x - towerPtr->getTowerWidth(), towerPtr->getMapLocation().y - towerPtr->getTowerHeight(), "fortifiedPosition.txt", 6);
+	}
+	if (towerPtr->getTowerType() == "Fort") {
+		display1.addMapGraphic(towerPtr->getMapLocation().x - towerPtr->getTowerWidth(), towerPtr->getMapLocation().y - towerPtr->getTowerHeight(), "fort.txt", 6);
+	}
+	if (towerPtr->getTowerType() == "Tower") {
+		display1.addMapGraphic(towerPtr->getMapLocation().x - towerPtr->getTowerWidth(), towerPtr->getMapLocation().y - towerPtr->getTowerHeight(), "tower.txt", 7);
+	}
+	if (towerPtr->getTowerType() == "Castle") {
+		display1.addMapGraphic(towerPtr->getMapLocation().x - towerPtr->getTowerWidth(), towerPtr->getMapLocation().y - towerPtr->getTowerHeight(), "castle.txt", 8);
+	}
 }
 
 void Game::actionLoop() {
@@ -512,29 +516,28 @@ void Game::actionLoop() {
 }
 
 void Game::moveViewer() {
-	char ch = checkForInput();
 	Coordinates viewerCoords = display1.getViewerCoords();
 	Coordinates cursorCoords = cursor1.getMapLocation();
 
-	if (ch == 'W' || ch == 'w') {
-		if (display1.getViewerCoords().y >= 0) {
+	if (isKeyPressed('W') || isKeyPressed('w')) {
+		if (display1.getViewerCoords().y > 0) {
 			viewerCoords.y--;
 			cursorCoords.y--;
 		}
 	}
-	if (ch == 'S' || ch == 's') {
+	if (isKeyPressed('S') || isKeyPressed('s')) {
 		if (display1.getViewerCoords().y < (display1.getMapSize().y - 40)) {
 			viewerCoords.y++;
 			cursorCoords.y++;
 		}
 	}
-	if (ch == 'A' || ch == 'a') {
-		if (display1.getViewerCoords().x >= 0) {
+	if (isKeyPressed('A') || isKeyPressed('a')) {
+		if (display1.getViewerCoords().x > 0) {
 			viewerCoords.x--;
 			cursorCoords.x--;
 		}
 	}
-	if (ch == 'D' || ch == 'd') {
+	if (isKeyPressed('D') || isKeyPressed('d')) {
 		if (display1.getViewerCoords().x < (display1.getMapSize().x - 150)) {
 			viewerCoords.x++;
 			cursorCoords.x++;
@@ -546,32 +549,48 @@ void Game::moveViewer() {
 }
 
 void Game::cursorAction() {
-	char ch = checkForInput();
+
 	Coordinates cursorScreenLocation = cursor1.getScreenLocation();
 	Coordinates cursorMapLocation = cursor1.getMapLocation();
 
-	if (ch == '^') {
-		if (cursor1.getScreenLocation().y > 11) {
-			cursorScreenLocation.y--;
-			cursorMapLocation.y--;
+	display1.addString(2, 1, "cursorScreen x: " + to_string(cursorScreenLocation.x), 15);
+	display1.addString(2, 2, "cursorScreen y: " + to_string(cursorScreenLocation.y), 15);
+	display1.addString(2, 3, "cursorMap x: " + to_string(cursorMapLocation.x), 15);
+	display1.addString(2, 4, "cursorMap y: " + to_string(cursorMapLocation.y), 15);
+
+	if (steady_clock::now() - lastCursorXMoveTime >= milliseconds(30)) {
+
+		if (isKeyPressed(VK_RIGHT)) {
+			if (cursor1.getScreenLocation().x < 144) {
+				cursorScreenLocation.x++;
+				cursorMapLocation.x++;
+				lastCursorXMoveTime = steady_clock::now();
+			}
+		}
+		if (isKeyPressed(VK_LEFT)) {
+			if (cursor1.getScreenLocation().x > 1) {
+				cursorScreenLocation.x--;
+				cursorMapLocation.x--;
+				lastCursorXMoveTime = steady_clock::now();
+			}
 		}
 	}
-	if (ch == 'v') {
-		if (cursor1.getScreenLocation().y < 48) {
-			cursorScreenLocation.y++;
-			cursorMapLocation.y++;
+
+	if (steady_clock::now() - lastCursorYMoveTime >= milliseconds(60)) {
+
+		if (isKeyPressed(VK_UP)) {
+			if (cursor1.getScreenLocation().y > 10) {
+				cursorScreenLocation.y--;
+				cursorMapLocation.y--;
+				lastCursorYMoveTime = steady_clock::now();
+			}
 		}
-	}
-	if (ch == '<') {
-		if (cursor1.getScreenLocation().x > 2) {
-			cursorScreenLocation.x--;
-			cursorMapLocation.x--;
-		}
-	}
-	if (ch == '>') {
-		if (cursor1.getScreenLocation().x < 148) {
-			cursorScreenLocation.x++;
-			cursorMapLocation.x++;
+		if (isKeyPressed(VK_DOWN)) {
+			if (cursor1.getScreenLocation().y < 46) {
+				cursorScreenLocation.y++;
+				cursorMapLocation.y++;
+				lastCursorYMoveTime = steady_clock::now();
+			}
 		}
 	}
 
@@ -585,7 +604,7 @@ void Game::enemySpawn() {
 		random_device seed;
 		mt19937 gen(seed());
 		uniform_int_distribution<int> probRange(1, 100);
-		uniform_int_distribution<int> coordRange(0, display1.getMapSize().y);
+		uniform_int_distribution<int> coordRange(0, display1.getMapSize().y - 1);
 
 		int prob = probRange(gen);
 

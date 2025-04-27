@@ -197,7 +197,7 @@ void DisplayV2::setMapSize(int newMapWidth, int newMapHeight) {
 void DisplayV2::renderViewer() {
 	for (int y = 10; y < screenHeight; y++) {
 		for (int x = 0; x < screenWidth; x++) {
-			screenBuffer.at(x).at(y) = map.at(x + viewer.x).at(y + viewer.y);
+			screenBuffer.at(x).at(y) = map.at(x + viewer.x).at((y - 10) + viewer.y);
 		}
 	}
 }

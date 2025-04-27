@@ -44,7 +44,7 @@ Tower::Tower(string inputTowerType, Coordinates inputMapLocation) {
 		healthIncrease = 50.0;
 		rangeIncrease = 75.0;
 		towerWidth = 5;
-		towerHeight = 3;
+		towerHeight = 2;
 	}
 
 	if (towerType == "Castle") {

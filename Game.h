@@ -28,7 +28,8 @@ public:
 	void winGame();
 	void loseGame();
 	void renderUnitBar();
-	char checkForInput();
+	bool isKeyPressed(int);
+	bool isNewKeyPress(int);
 	char waitForInput();
 	void unitAction(Unit*);
 	void towerAction(Tower*);
@@ -37,6 +38,8 @@ public:
 	void cursorAction();
 	void enemySpawn();
 private:
+	time_point<steady_clock> lastCursorXMoveTime = steady_clock::now();
+	time_point<steady_clock> lastCursorYMoveTime = steady_clock::now();
 	time_point<steady_clock> lastEnemySpawnTime = steady_clock::now();
 	duration<double> enemySpawnSpeed;
 	Object* overlayObject = nullptr;
