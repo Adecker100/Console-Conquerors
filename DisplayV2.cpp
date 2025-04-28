@@ -69,8 +69,10 @@ void DisplayV2::addGraphic(int graphicX, int graphicY, string fileName, int grap
 			if (tempChar == '\n') {
 				tempChar = fileInput.get();
 			}
-			screenBuffer.at(x).at(y).character = tempChar;
-			screenBuffer.at(x).at(y).color = graphicColor;
+			if (tempChar != ' ') {
+				screenBuffer.at(x).at(y).character = tempChar;
+				screenBuffer.at(x).at(y).color = graphicColor;
+			}
 		}
 	}
 }

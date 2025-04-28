@@ -37,16 +37,20 @@ public:
 	void moveViewer();
 	void cursorAction();
 	void enemySpawn();
+	void drawUnit(Unit*);
+	void spawnUnit(string);
 private:
 	time_point<steady_clock> lastCursorXMoveTime = steady_clock::now();
 	time_point<steady_clock> lastCursorYMoveTime = steady_clock::now();
 	time_point<steady_clock> lastEnemySpawnTime = steady_clock::now();
+	time_point<steady_clock> lastMoneyTime = steady_clock::now();
 	duration<double> enemySpawnSpeed;
 	Object* overlayObject = nullptr;
 	string difficulty;
-	string selectedUnit;
+	int selectedUnit = 1;
 	DisplayV2 display1;
 	Cursor cursor1;
 	vector<Object*> objectVector;
+	int money = 0;
 };
 

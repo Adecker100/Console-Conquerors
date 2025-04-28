@@ -32,7 +32,10 @@ public:
 	void setLastMoveTime(time_point<steady_clock>);
 	void setUnitType(string);
 	void setDeadColor(int);
+	int getWalkCycle();
+	void setWalkCycle(int);
 private:
+	int walkCycle = 0;
 	int deadColor = 0;
 	bool alive = true;
 	duration<double> moveSpeed;

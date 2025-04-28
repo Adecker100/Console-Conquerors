@@ -149,6 +149,8 @@ void Game::diffSelect() {
 				genMap();
 			}
 		}
+		display1.addGraphic(41, 3, "newGameHeader.txt", 10);
+		display1.addGraphic(18, 10, "selectDifficulty.txt", 10);
 		if (status == 1) {
 			display1.addBorder('#', 2);
 			display1.addGraphic(15, 21, "easy.txt", 2);
@@ -170,6 +172,7 @@ void Game::diffSelect() {
 			display1.addGraphic(15, 35, "hardSelected.txt", 12);
 			display1.drawScreen();
 		}
+		display1.clearScreenBuffer();
 	}
 }
 
@@ -207,16 +210,19 @@ void Game::genMap() {
 		display1.setMapSize(300, 100);
 		enemySpawnSpeed = duration<double>(1.5);
 		numTowers = 50;
+		money = 50;
 	}
 	if (difficulty == "Medium") {
 		display1.setMapSize(600, 300);
 		enemySpawnSpeed = duration<double>(1.0);
 		numTowers = 100;
+		money = 50;
 	}
 	if (difficulty == "Hard") {
 		display1.setMapSize(900, 900);
 		enemySpawnSpeed = duration<double>(0.5);
 		numTowers = 200;
+		money = 50;
 	}
 
 	spawnStartingTowers();
@@ -332,6 +338,7 @@ void Game::spawnTower() {
 void Game::mainLoop() {
 	while (true) {
 		display1.clearMap();
+		display1.clearScreenBuffer();
 		moveViewer();
 		actionLoop();
 		enemySpawn();
@@ -377,7 +384,90 @@ void Game::loseGame() {
 }
 
 void Game::renderUnitBar() {
+	if (steady_clock::now() - lastMoneyTime >= duration<int>(1)) {
+		money++;
+		lastMoneyTime = steady_clock::now();
+	}
+	Tower* castlePtr = dynamic_cast<Tower*>(objectVector.at(0));
+	display1.addString(83, 4, "Money: " + to_string(money), 10);
+	display1.addString(83, 6, "Castle Health", 15);
+	display1.addString(84, 7, to_string(static_cast<int>(castlePtr->getHealth())) + " / 2000", 15);
+	display1.addGraphic(5, 3, "Sword Guy!unitBar.txt", 15);
+	display1.addGraphic(18, 3, "Shield ManunitBar.txt", 15);
+	display1.addGraphic(31, 3, "ArcherunitBar.txt", 15);
+	display1.addGraphic(44, 3, "BruteunitBar.txt", 15);
+	display1.addGraphic(57, 3, "CatapultunitBar.txt", 15);
+	display1.addGraphic(70, 3, "EngineerunitBar.txt", 15);
+	
+	switch (selectedUnit) {
+	case 1:
+		display1.addGraphic(3, 2, "unitBarBox.txt", 11);
+		display1.addString(6, 8, "Cost: 1", 14);
+		break;
+	case 2:
+		display1.addGraphic(16, 2, "unitBarBox.txt", 11);
+		display1.addString(19, 8, "Cost: 3", 14);
+		break;
+	case 3:
+		display1.addGraphic(29, 2, "unitBarBox.txt", 11);
+		display1.addString(32, 8, "Cost: 2", 14);
+		break;
+	case 4:
+		display1.addGraphic(42, 2, "unitBarBox.txt", 11);
+		display1.addString(45, 8, "Cost: 4", 14);
+		break;
+	case 5:
+		display1.addGraphic(55, 2, "unitBarBox.txt", 11);
+		display1.addString(58, 8, "Cost: 5", 14);
+		break;
+	case 6:
+		display1.addGraphic(68, 2, "unitBarBox.txt", 11);
+		display1.addString(71, 8, "Cost: 4", 14);
+		break;
+	}
 
+	if (isNewKeyPress('1')) {
+		if (selectedUnit == 1) {
+			display1.addGraphic(3, 2, "unitBarBox.txt", 14);
+			spawnUnit("Sword Guy!");
+		}
+		selectedUnit = 1;
+	}
+	if (isNewKeyPress('2')) {
+		if (selectedUnit == 2) {
+			display1.addGraphic(16, 2, "unitBarBox.txt", 14);
+			spawnUnit("Shield Man");
+		}
+		selectedUnit = 2;
+	}
+	if (isNewKeyPress('3')) {
+		if (selectedUnit == 3) {
+			display1.addGraphic(29, 2, "unitBarBox.txt", 14);
+			spawnUnit("Archer");
+		}
+		selectedUnit = 3;
+	}
+	if (isNewKeyPress('4')) {
+		if (selectedUnit == 4) {
+			display1.addGraphic(42, 2, "unitBarBox.txt", 14);
+			spawnUnit("Brute");
+		}
+		selectedUnit = 4;
+	}
+	if (isNewKeyPress('5')) {
+		if (selectedUnit == 5) {
+			display1.addGraphic(55, 2, "unitBarBox.txt", 14);
+			spawnUnit("Catapult");
+		}
+		selectedUnit = 5;
+	}
+	if (isNewKeyPress('6')) {
+		if (selectedUnit == 6) {
+			display1.addGraphic(68, 2, "unitBarBox.txt", 14);
+			spawnUnit("Engineer");
+		}
+		selectedUnit = 6;
+	}
 }
 
 bool Game::isKeyPressed(int key) {
@@ -422,6 +512,7 @@ char Game::waitForInput() {
 
 void Game::unitAction(Unit* unitPtr) {
 
+	//If unit is dead, draw the bloody grass 0.0
 	if (unitPtr->getHealth() <= 0) {
 		if (unitPtr->getAlive()) {
 			unitPtr->setAlive(false);
@@ -435,24 +526,37 @@ void Game::unitAction(Unit* unitPtr) {
 			display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y, "#", unitPtr->getDeadColor());
 		}
 	}
+
+	//If the unit is not dead...
 	else {
+
+		//Check if the unit is in attack range of an enemy
 		bool canAttack = false;
 		for (int i = 0; i < objectVector.size(); i++) {
 			if (objectVector.at(i)->getEnemy() != unitPtr->getEnemy()) {
 				if (abs(objectVector.at(i)->getMapLocation().x - unitPtr->getMapLocation().x) <= unitPtr->getAttackRange()) {
 					if (abs(objectVector.at(i)->getMapLocation().y - unitPtr->getMapLocation().y) <= (unitPtr->getAttackRange() / 2)) {
-						canAttack = true;
+						if (objectVector.at(i)->getObjectType() == "Tower") {
+							Tower* towerPtr = dynamic_cast<Tower*>(objectVector.at(i));
+							if (towerPtr->getNumUnits() > 0) {
+								canAttack = true;
+							}
+						}
 					}
 				}
 			}
 		}
+
 		if (canAttack) {
+
 			if ((steady_clock::now() - unitPtr->getLastAttackTime()) >= unitPtr->getAttackSpeed()) {
 				Object* closestEnemy = nullptr;
 				float closestEnemyDist = 100.0;
 				float enemyDist = 0.0;
 				float enemyXDist = 0.0;
 				float enemyYDist = 0.0;
+
+				//Find out which enemy unit is the closest
 				for (int i = 0; i < objectVector.size(); i++) {
 					if (objectVector.at(i)->getEnemy() != unitPtr->getEnemy()) {
 						if (abs(objectVector.at(i)->getMapLocation().x - unitPtr->getMapLocation().x) <= unitPtr->getAttackRange()) {
@@ -468,22 +572,58 @@ void Game::unitAction(Unit* unitPtr) {
 						}
 					}
 				}
+				if (unitPtr->getAttackType() == "Precise") {
+					if (closestEnemy->getObjectType() == "Unit") {
+						closestEnemy->setHealth(closestEnemy->getHealth() - unitPtr->getAttackDamage());
+						unitPtr->setLastAttackTime(steady_clock::now());
+					}
+					if (closestEnemy->getObjectType() == "Tower") {
+
+					}
+				}
+				if (unitPtr->getAttackType() == "Area") {
+
+				}
 			}
 		}
+
+		//If not in attack range of anything, move instead
 		else {
 			if ((steady_clock::now() - unitPtr->getLastMoveTime()) >= unitPtr->getMoveSpeed()) {
 				Coordinates unitPosition = unitPtr->getMapLocation();
 				if (unitPtr->getEnemy()) {
-					unitPosition.x--;
+					if (unitPosition.x > 12) {
+						unitPosition.x--;
+					}
+					else {
+						if (unitPosition.y < (display1.getMapSize().y) / 2) {
+							unitPosition.y++;
+						}
+						else {
+							unitPosition.y--;
+						}
+					}
 				}
 				else {
-					unitPosition.x++;
+					if (unitPosition.x < display1.getMapSize().x - 12) {
+						unitPosition.x++;
+					}
+					else {
+						if (unitPosition.y < (display1.getMapSize().y) / 2) {
+							unitPosition.y++;
+						}
+						else {
+							unitPosition.y--;
+						}
+					}
 				}
+				if (unitPtr->getWalkCycle() == 0) { unitPtr->setWalkCycle(1); }
+				else { unitPtr->setWalkCycle(0); }
 				unitPtr->setMapLocation(unitPosition);
 				unitPtr->setLastMoveTime(steady_clock::now());
 			}
 		}
-		display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y, "E", 9);
+		drawUnit(unitPtr);
 	}
 }
 
@@ -553,11 +693,6 @@ void Game::cursorAction() {
 	Coordinates cursorScreenLocation = cursor1.getScreenLocation();
 	Coordinates cursorMapLocation = cursor1.getMapLocation();
 
-	display1.addString(2, 1, "cursorScreen x: " + to_string(cursorScreenLocation.x), 15);
-	display1.addString(2, 2, "cursorScreen y: " + to_string(cursorScreenLocation.y), 15);
-	display1.addString(2, 3, "cursorMap x: " + to_string(cursorMapLocation.x), 15);
-	display1.addString(2, 4, "cursorMap y: " + to_string(cursorMapLocation.y), 15);
-
 	if (steady_clock::now() - lastCursorXMoveTime >= milliseconds(30)) {
 
 		if (isKeyPressed(VK_RIGHT)) {
@@ -603,36 +738,111 @@ void Game::enemySpawn() {
 	if (steady_clock::now() - lastEnemySpawnTime >= enemySpawnSpeed) {
 		random_device seed;
 		mt19937 gen(seed());
-		uniform_int_distribution<int> probRange(1, 100);
+		uniform_int_distribution<int> probRange(2, 100);
 		uniform_int_distribution<int> coordRange(0, display1.getMapSize().y - 1);
 
 		int prob = probRange(gen);
 
 		if (difficulty == "Easy") {
-			if (prob <= 25) { objectVector.push_back(new Unit("Sword Guy!", {display1.getMapSize().x, coordRange(gen)})); }
-			if (prob >= 26 && prob <= 50) { objectVector.push_back(new Unit("Shield Man", { display1.getMapSize().x - 1, coordRange(gen) })); }
-			if (prob >= 51 && prob <= 75) { objectVector.push_back(new Unit("Archer", { display1.getMapSize().x - 1, coordRange(gen) })); }
-			if (prob >= 76 && prob <= 85) { objectVector.push_back(new Unit("Brute", { display1.getMapSize().x - 1, coordRange(gen) })); }
-			if (prob >= 86 && prob <= 90) { objectVector.push_back(new Unit("Catapult", { display1.getMapSize().x - 1, coordRange(gen) })); }
-			if (prob >= 91 && prob <= 100) { objectVector.push_back(new Unit("Engineer", { display1.getMapSize().x - 1, coordRange(gen) })); }
+			if (prob <= 25) { objectVector.push_back(new Unit("Sword Guy!", {display1.getMapSize().x - 3, coordRange(gen)})); }
+			if (prob >= 26 && prob <= 50) { objectVector.push_back(new Unit("Shield Man", { display1.getMapSize().x - 3, coordRange(gen) })); }
+			if (prob >= 51 && prob <= 75) { objectVector.push_back(new Unit("Archer", { display1.getMapSize().x - 2, coordRange(gen) })); }
+			if (prob >= 76 && prob <= 85) { objectVector.push_back(new Unit("Brute", { display1.getMapSize().x - 2, coordRange(gen) })); }
+			if (prob >= 86 && prob <= 90) { objectVector.push_back(new Unit("Catapult", { display1.getMapSize().x - 2, coordRange(gen) })); }
+			if (prob >= 91 && prob <= 100) { objectVector.push_back(new Unit("Engineer", { display1.getMapSize().x - 2, coordRange(gen) })); }
 		}
 		if (difficulty == "Medium") {
-			if (prob <= 10) { objectVector.push_back(new Unit("Sword Guy!", { display1.getMapSize().x - 1, coordRange(gen) })); }
-			if (prob >= 11 && prob <= 35) { objectVector.push_back(new Unit("Shield Man", { display1.getMapSize().x - 1, coordRange(gen) })); }
-			if (prob >= 36 && prob <= 60) { objectVector.push_back(new Unit("Archer", { display1.getMapSize().x - 1, coordRange(gen) })); }
-			if (prob >= 61 && prob <= 75) { objectVector.push_back(new Unit("Brute", { display1.getMapSize().x - 1, coordRange(gen) })); }
-			if (prob >= 76 && prob <= 85) { objectVector.push_back(new Unit("Catapult", { display1.getMapSize().x - 1, coordRange(gen) })); }
-			if (prob >= 86 && prob <= 100) { objectVector.push_back(new Unit("Engineer", { display1.getMapSize().x - 1, coordRange(gen) })); }
+			if (prob <= 10) { objectVector.push_back(new Unit("Sword Guy!", { display1.getMapSize().x - 2, coordRange(gen) })); }
+			if (prob >= 11 && prob <= 35) { objectVector.push_back(new Unit("Shield Man", { display1.getMapSize().x - 2, coordRange(gen) })); }
+			if (prob >= 36 && prob <= 60) { objectVector.push_back(new Unit("Archer", { display1.getMapSize().x - 2, coordRange(gen) })); }
+			if (prob >= 61 && prob <= 75) { objectVector.push_back(new Unit("Brute", { display1.getMapSize().x - 2, coordRange(gen) })); }
+			if (prob >= 76 && prob <= 85) { objectVector.push_back(new Unit("Catapult", { display1.getMapSize().x - 2, coordRange(gen) })); }
+			if (prob >= 86 && prob <= 100) { objectVector.push_back(new Unit("Engineer", { display1.getMapSize().x - 2, coordRange(gen) })); }
 		}
 		if (difficulty == "Hard") {
-			if (prob <= 5) { objectVector.push_back(new Unit("Sword Guy!", { display1.getMapSize().x - 1, coordRange(gen) })); }
-			if (prob >= 6 && prob <= 25) { objectVector.push_back(new Unit("Shield Man", { display1.getMapSize().x - 1, coordRange(gen) })); }
-			if (prob >= 26 && prob <= 55) { objectVector.push_back(new Unit("Archer", { display1.getMapSize().x - 1, coordRange(gen) })); }
-			if (prob >= 56 && prob <= 70) { objectVector.push_back(new Unit("Brute", { display1.getMapSize().x - 1, coordRange(gen) })); }
-			if (prob >= 71 && prob <= 85) { objectVector.push_back(new Unit("Catapult", { display1.getMapSize().x - 1, coordRange(gen) })); }
-			if (prob >= 86 && prob <= 100) { objectVector.push_back(new Unit("Engineer", { display1.getMapSize().x - 1, coordRange(gen) })); }
+			if (prob <= 5) { objectVector.push_back(new Unit("Sword Guy!", { display1.getMapSize().x - 2, coordRange(gen) })); }
+			if (prob >= 6 && prob <= 25) { objectVector.push_back(new Unit("Shield Man", { display1.getMapSize().x - 2, coordRange(gen) })); }
+			if (prob >= 26 && prob <= 55) { objectVector.push_back(new Unit("Archer", { display1.getMapSize().x - 2, coordRange(gen) })); }
+			if (prob >= 56 && prob <= 70) { objectVector.push_back(new Unit("Brute", { display1.getMapSize().x - 2, coordRange(gen) })); }
+			if (prob >= 71 && prob <= 85) { objectVector.push_back(new Unit("Catapult", { display1.getMapSize().x - 2, coordRange(gen) })); }
+			if (prob >= 86 && prob <= 100) { objectVector.push_back(new Unit("Engineer", { display1.getMapSize().x - 2, coordRange(gen) })); }
 		}
 		objectVector.at(objectVector.size() - 1)->setEnemy(true);
 		lastEnemySpawnTime = steady_clock::now();
+	}
+}
+
+void Game::drawUnit(Unit* unitPtr) {
+	if (unitPtr->getUnitType() == "Sword Guy!") {
+		if (unitPtr->getEnemy()) {
+			display1.addMapGraphic(unitPtr->getMapLocation().x - 1, unitPtr->getMapLocation().y, unitPtr->getUnitType() + to_string(unitPtr->getWalkCycle()) + ".txt", 12);
+		}
+		else {
+			display1.addMapGraphic(unitPtr->getMapLocation().x - 1, unitPtr->getMapLocation().y, unitPtr->getUnitType() + to_string(unitPtr->getWalkCycle()) + ".txt", 9);
+		}
+	}
+	else if (unitPtr->getUnitType() == "Shield Man") {
+		if (unitPtr->getEnemy()) {
+			display1.addMapGraphic(unitPtr->getMapLocation().x - 1, unitPtr->getMapLocation().y - 1, unitPtr->getUnitType() + to_string(unitPtr->getWalkCycle()) + ".txt", 12);
+		}
+		else {
+			display1.addMapGraphic(unitPtr->getMapLocation().x - 1, unitPtr->getMapLocation().y - 1, unitPtr->getUnitType() + to_string(unitPtr->getWalkCycle()) + ".txt", 9);
+		}
+	}
+	else if (unitPtr->getUnitType() == "Brute") {
+		if (unitPtr->getEnemy()) {
+			display1.addMapGraphic(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y - 1, unitPtr->getUnitType() + to_string(unitPtr->getWalkCycle()) + ".txt", 12);
+		}
+		else {
+			display1.addMapGraphic(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y - 1, unitPtr->getUnitType() + to_string(unitPtr->getWalkCycle()) + ".txt", 9);
+		}
+	}
+	else {
+		display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y, "R", 12);
+	}
+}
+
+void Game::spawnUnit(string unitType) {
+	if (unitType == "Sword Guy!") {
+		if (money >= 1) {
+			objectVector.push_back(new Unit(unitType, { 2,cursor1.getMapLocation().y }));
+			objectVector.at(objectVector.size() - 1)->setEnemy(false);
+			money--;
+		}
+	}
+	if (unitType == "Shield Man") {
+		if (money >= 3) {
+			objectVector.push_back(new Unit(unitType, { 2,cursor1.getMapLocation().y }));
+			objectVector.at(objectVector.size() - 1)->setEnemy(false);
+			money = money - 3;
+		}
+	}
+	if (unitType == "Archer") {
+		if (money >= 2) {
+			objectVector.push_back(new Unit(unitType, { 2,cursor1.getMapLocation().y }));
+			objectVector.at(objectVector.size() - 1)->setEnemy(false);
+			money = money - 2;
+		}
+	}
+	if (unitType == "Brute") {
+		if (money >= 4) {
+			objectVector.push_back(new Unit(unitType, { 2,cursor1.getMapLocation().y }));
+			objectVector.at(objectVector.size() - 1)->setEnemy(false);
+			money = money - 4;
+		}
+	}
+	if (unitType == "Catapult") {
+		if (money >= 5) {
+			objectVector.push_back(new Unit(unitType, { 2,cursor1.getMapLocation().y }));
+			objectVector.at(objectVector.size() - 1)->setEnemy(false);
+			money = money - 5;
+		}
+	}
+	if (unitType == "Engineer") {
+		if (money >= 4) {
+			objectVector.push_back(new Unit(unitType, { 2,cursor1.getMapLocation().y }));
+			objectVector.at(objectVector.size() - 1)->setEnemy(false);
+			money = money - 4;
+		}
 	}
 }

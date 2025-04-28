@@ -171,3 +171,11 @@ void Unit::setUnitType(string newUnitType) {
 void Unit::setDeadColor(int newDeadColor) {
 	deadColor = newDeadColor;
 }
+
+int Unit::getWalkCycle() {
+	return walkCycle;
+}
+
+void Unit::setWalkCycle(int newWalkCycle) {
+	walkCycle = newWalkCycle;
+}

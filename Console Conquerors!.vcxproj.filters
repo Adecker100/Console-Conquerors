@@ -73,5 +73,18 @@
     <Text Include="tower.txt" />
     <Text Include="castle.txt" />
     <Text Include="cursor.txt" />
+    <Text Include="unitBarBox.txt" />
+    <Text Include="Sword Guy!0.txt" />
+    <Text Include="Sword Guy!1.txt" />
+    <Text Include="Shield Man0.txt" />
+    <Text Include="Shield Man1.txt" />
+    <Text Include="Brute0.txt" />
+    <Text Include="Brute1.txt" />
+    <Text Include="Sword Guy!unitBar.txt" />
+    <Text Include="Shield ManunitBar.txt" />
+    <Text Include="ArcherunitBar.txt" />
+    <Text Include="BruteunitBar.txt" />
+    <Text Include="CatapultunitBar.txt" />
+    <Text Include="EngineerunitBar.txt" />
   </ItemGroup>
 </Project>

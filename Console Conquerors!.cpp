@@ -15,5 +15,6 @@ int main()
 	catch (runtime_error& excpt) {
 		cout << excpt.what() << endl;
 	}
+
 	return 0;
 }
