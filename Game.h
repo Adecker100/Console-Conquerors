@@ -37,7 +37,8 @@ public:
 	void moveViewer();
 	void cursorAction();
 	void enemySpawn();
-	void drawUnit(Unit*);
+	void drawUnitWalk(Unit*);
+	void drawUnitAttack(Unit*);
 	void spawnUnit(string);
 private:
 	time_point<steady_clock> lastCursorXMoveTime = steady_clock::now();

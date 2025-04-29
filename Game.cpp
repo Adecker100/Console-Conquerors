@@ -516,10 +516,7 @@ void Game::unitAction(Unit* unitPtr) {
 	if (unitPtr->getHealth() <= 0) {
 		if (unitPtr->getAlive()) {
 			unitPtr->setAlive(false);
-			random_device seed;
-			mt19937 gen(seed());
-			uniform_int_distribution<int> prob(1, 2);
-			unitPtr->setDeadColor(prob(gen) * 2);
+			unitPtr->setDeadColor(4);
 			display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y, "#", unitPtr->getDeadColor());
 		}
 		else {
@@ -542,14 +539,19 @@ void Game::unitAction(Unit* unitPtr) {
 								canAttack = true;
 							}
 						}
+						if (objectVector.at(i)->getObjectType() == "Unit") {
+							Unit* unitPtr = dynamic_cast<Unit*>(objectVector.at(i));
+							if (unitPtr->getHealth() > 0) {
+								canAttack = true;
+							}
+						}
 					}
 				}
 			}
 		}
-
 		if (canAttack) {
-
 			if ((steady_clock::now() - unitPtr->getLastAttackTime()) >= unitPtr->getAttackSpeed()) {
+				unitPtr->setAttacking(1);
 				Object* closestEnemy = nullptr;
 				float closestEnemyDist = 100.0;
 				float enemyDist = 0.0;
@@ -585,6 +587,12 @@ void Game::unitAction(Unit* unitPtr) {
 
 				}
 			}
+			else {
+				if ((steady_clock::now() - unitPtr->getLastAttackTime()) >= duration<double>(0.5)) {
+					unitPtr->setAttacking(0);
+				}
+			}
+			drawUnitAttack(unitPtr);
 		}
 
 		//If not in attack range of anything, move instead
@@ -622,24 +630,46 @@ void Game::unitAction(Unit* unitPtr) {
 				unitPtr->setMapLocation(unitPosition);
 				unitPtr->setLastMoveTime(steady_clock::now());
 			}
+			drawUnitWalk(unitPtr);
 		}
-		drawUnit(unitPtr);
 	}
 }
 
 void Game::towerAction(Tower* towerPtr) {
-	if (towerPtr->getTowerType() == "Fortified Position") {
-		display1.addMapGraphic(towerPtr->getMapLocation().x - towerPtr->getTowerWidth(), towerPtr->getMapLocation().y - towerPtr->getTowerHeight(), "fortifiedPosition.txt", 6);
+	if (towerPtr->getHealth() <= 0) {
+		
 	}
-	if (towerPtr->getTowerType() == "Fort") {
-		display1.addMapGraphic(towerPtr->getMapLocation().x - towerPtr->getTowerWidth(), towerPtr->getMapLocation().y - towerPtr->getTowerHeight(), "fort.txt", 6);
+	else {
+
+		//Create appropriate flag color for each tower
+		if (towerPtr->getNumUnits() == 0) {
+			display1.addMapString(towerPtr->getMapLocation().x, towerPtr->getMapLocation().y, "#", 15);
+		}
+		else {
+			if (towerPtr->getEnemy()) {
+				display1.addMapString(towerPtr->getMapLocation().x, towerPtr->getMapLocation().y, "#", 12);
+			}
+			else {
+				display1.addMapString(towerPtr->getMapLocation().x, towerPtr->getMapLocation().y, "#", 9);
+			}
+		}
+
+		//Draw appropriate tower
+		if (towerPtr->getTowerType() == "Fortified Position") {
+			display1.addMapGraphic(towerPtr->getMapLocation().x - towerPtr->getTowerWidth(), towerPtr->getMapLocation().y - towerPtr->getTowerHeight(), "fortifiedPosition.txt", 6);
+		}
+		if (towerPtr->getTowerType() == "Fort") {
+			display1.addMapGraphic(towerPtr->getMapLocation().x - towerPtr->getTowerWidth(), towerPtr->getMapLocation().y - towerPtr->getTowerHeight(), "fort.txt", 6);
+		}
+		if (towerPtr->getTowerType() == "Tower") {
+			display1.addMapGraphic(towerPtr->getMapLocation().x - towerPtr->getTowerWidth(), towerPtr->getMapLocation().y - towerPtr->getTowerHeight(), "tower.txt", 7);
+		}
+		if (towerPtr->getTowerType() == "Castle") {
+			display1.addMapGraphic(towerPtr->getMapLocation().x - towerPtr->getTowerWidth(), towerPtr->getMapLocation().y - towerPtr->getTowerHeight(), "castle.txt", 8);
+		}
 	}
-	if (towerPtr->getTowerType() == "Tower") {
-		display1.addMapGraphic(towerPtr->getMapLocation().x - towerPtr->getTowerWidth(), towerPtr->getMapLocation().y - towerPtr->getTowerHeight(), "tower.txt", 7);
-	}
-	if (towerPtr->getTowerType() == "Castle") {
-		display1.addMapGraphic(towerPtr->getMapLocation().x - towerPtr->getTowerWidth(), towerPtr->getMapLocation().y - towerPtr->getTowerHeight(), "castle.txt", 8);
-	}
+
+	
 }
 
 void Game::actionLoop() {
@@ -738,14 +768,14 @@ void Game::enemySpawn() {
 	if (steady_clock::now() - lastEnemySpawnTime >= enemySpawnSpeed) {
 		random_device seed;
 		mt19937 gen(seed());
-		uniform_int_distribution<int> probRange(2, 100);
-		uniform_int_distribution<int> coordRange(0, display1.getMapSize().y - 1);
+		uniform_int_distribution<int> probRange(1, 100);
+		uniform_int_distribution<int> coordRange(2, display1.getMapSize().y - 2);
 
 		int prob = probRange(gen);
 
 		if (difficulty == "Easy") {
-			if (prob <= 25) { objectVector.push_back(new Unit("Sword Guy!", {display1.getMapSize().x - 3, coordRange(gen)})); }
-			if (prob >= 26 && prob <= 50) { objectVector.push_back(new Unit("Shield Man", { display1.getMapSize().x - 3, coordRange(gen) })); }
+			if (prob <= 25) { objectVector.push_back(new Unit("Sword Guy!", {display1.getMapSize().x - 2, coordRange(gen)})); }
+			if (prob >= 26 && prob <= 50) { objectVector.push_back(new Unit("Shield Man", { display1.getMapSize().x - 2, coordRange(gen) })); }
 			if (prob >= 51 && prob <= 75) { objectVector.push_back(new Unit("Archer", { display1.getMapSize().x - 2, coordRange(gen) })); }
 			if (prob >= 76 && prob <= 85) { objectVector.push_back(new Unit("Brute", { display1.getMapSize().x - 2, coordRange(gen) })); }
 			if (prob >= 86 && prob <= 90) { objectVector.push_back(new Unit("Catapult", { display1.getMapSize().x - 2, coordRange(gen) })); }
@@ -772,33 +802,166 @@ void Game::enemySpawn() {
 	}
 }
 
-void Game::drawUnit(Unit* unitPtr) {
+void Game::drawUnitWalk(Unit* unitPtr) {
 	if (unitPtr->getUnitType() == "Sword Guy!") {
 		if (unitPtr->getEnemy()) {
-			display1.addMapGraphic(unitPtr->getMapLocation().x - 1, unitPtr->getMapLocation().y, unitPtr->getUnitType() + to_string(unitPtr->getWalkCycle()) + ".txt", 12);
+			display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y, "S", 12);
 		}
 		else {
-			display1.addMapGraphic(unitPtr->getMapLocation().x - 1, unitPtr->getMapLocation().y, unitPtr->getUnitType() + to_string(unitPtr->getWalkCycle()) + ".txt", 9);
+			display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y, "S", 9);
 		}
 	}
 	else if (unitPtr->getUnitType() == "Shield Man") {
 		if (unitPtr->getEnemy()) {
-			display1.addMapGraphic(unitPtr->getMapLocation().x - 1, unitPtr->getMapLocation().y - 1, unitPtr->getUnitType() + to_string(unitPtr->getWalkCycle()) + ".txt", 12);
+			display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y - 1, "_", 12);
+			display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y, "S", 12);
 		}
 		else {
-			display1.addMapGraphic(unitPtr->getMapLocation().x - 1, unitPtr->getMapLocation().y - 1, unitPtr->getUnitType() + to_string(unitPtr->getWalkCycle()) + ".txt", 9);
+			display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y - 1, "_", 9);
+			display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y, "S", 9);
+		}
+	}
+	else if (unitPtr->getUnitType() == "Archer") {
+		if (unitPtr->getEnemy()) {
+			display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y, "A", 12);
+		}
+		else {
+			display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y, "A", 9);
 		}
 	}
 	else if (unitPtr->getUnitType() == "Brute") {
+		if (unitPtr->getWalkCycle() == 0) {
+			if (unitPtr->getEnemy()) {
+				display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y - 1, "/", 12);
+				display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y, "B", 12);
+				display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y + 1, "/", 12);
+			}
+			else {
+				display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y - 1, "/", 9);
+				display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y, "B", 9);
+				display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y + 1, "/", 9);
+			}
+		}
+		else if (unitPtr->getWalkCycle() == 1) {
+			if (unitPtr->getEnemy()) {
+				display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y - 1, "\\", 12);
+				display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y, "B", 12);
+				display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y + 1, "\\", 12);
+			}
+			else {
+				display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y - 1, "\\", 9);
+				display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y, "B", 9);
+				display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y + 1, "\\", 9);
+			}
+		}
+		
+	}
+	else if (unitPtr->getUnitType() == "Catapult") {
 		if (unitPtr->getEnemy()) {
-			display1.addMapGraphic(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y - 1, unitPtr->getUnitType() + to_string(unitPtr->getWalkCycle()) + ".txt", 12);
+			display1.addMapString(unitPtr->getMapLocation().x - 1, unitPtr->getMapLocation().y - 1, "- -", 12);
+			display1.addMapString(unitPtr->getMapLocation().x - 1, unitPtr->getMapLocation().y, "##O", 12);
+			display1.addMapString(unitPtr->getMapLocation().x - 1, unitPtr->getMapLocation().y + 1, "- -", 12);
 		}
 		else {
-			display1.addMapGraphic(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y - 1, unitPtr->getUnitType() + to_string(unitPtr->getWalkCycle()) + ".txt", 9);
+			display1.addMapString(unitPtr->getMapLocation().x - 1, unitPtr->getMapLocation().y - 1, "- -", 9);
+			display1.addMapString(unitPtr->getMapLocation().x - 1, unitPtr->getMapLocation().y, "O##", 9);
+			display1.addMapString(unitPtr->getMapLocation().x - 1, unitPtr->getMapLocation().y + 1, "- -", 9);
 		}
 	}
-	else {
-		display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y, "R", 12);
+	else if (unitPtr->getUnitType() == "Engineer") {
+		if (unitPtr->getEnemy()) {
+			display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y, "E", 12);
+		}
+		else {
+			display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y, "E", 9);
+		}
+	}
+}
+
+void Game::drawUnitAttack(Unit* unitPtr) {
+	if (unitPtr->getUnitType() == "Sword Guy!") {
+		if (unitPtr->getAttacking() == 1) {
+			if (unitPtr->getEnemy()) {
+				display1.addMapString(unitPtr->getMapLocation().x - 1, unitPtr->getMapLocation().y, "_S", 12);
+			}
+			else {
+				display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y, "S_", 9);
+			}
+		}
+		else if (unitPtr->getAttacking() == 0) {
+			drawUnitWalk(unitPtr);
+		}
+	}
+	else if (unitPtr->getUnitType() == "Shield Man") {
+		if (unitPtr->getAttacking() == 1) {
+			if (unitPtr->getEnemy()) {
+				display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y - 1, "_", 12);
+				display1.addMapString(unitPtr->getMapLocation().x - 1, unitPtr->getMapLocation().y, "_S", 12);
+			}
+			else {
+				display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y - 1, "_", 9);
+				display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y, "S_", 9);
+			}
+		}
+		else if (unitPtr->getAttacking() == 0) {
+			drawUnitWalk(unitPtr);
+		}
+	}
+	else if (unitPtr->getUnitType() == "Archer") {
+		if (unitPtr->getAttacking() == 1) {
+			if (unitPtr->getEnemy()) {
+				display1.addMapString(unitPtr->getMapLocation().x - 1, unitPtr->getMapLocation().y, "<A", 12);
+			}
+			else {
+				display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y, "A>", 9);
+			}
+		}
+		else if (unitPtr->getAttacking() == 0) {
+			drawUnitWalk(unitPtr);
+		}
+	}
+	else if (unitPtr->getUnitType() == "Brute") {
+		if (unitPtr->getAttacking() == 1) {
+			if (unitPtr->getEnemy()) {
+				display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y - 1, "\\", 12);
+				display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y, "B", 12);
+				display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y + 1, "/", 12);
+			}
+			else {
+				display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y - 1, "/", 9);
+				display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y, "B", 9);
+				display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y + 1, "\\", 9);
+			}
+		}
+		else if (unitPtr->getAttacking() == 0) {
+			if (unitPtr->getEnemy()) {
+				display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y - 1, "/", 12);
+				display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y, "B", 12);
+				display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y + 1, "\\", 12);
+			}
+			else {
+				display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y - 1, "\\", 9);
+				display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y, "B", 9);
+				display1.addMapString(unitPtr->getMapLocation().x, unitPtr->getMapLocation().y + 1, "/", 9);
+			}
+		}
+	}
+	else if (unitPtr->getUnitType() == "Catapult") {
+		if (unitPtr->getAttacking() == 1) {
+			if (unitPtr->getEnemy()) {
+				display1.addMapString(unitPtr->getMapLocation().x - 1, unitPtr->getMapLocation().y - 1, "- -", 12);
+				display1.addMapString(unitPtr->getMapLocation().x - 1, unitPtr->getMapLocation().y, "#O ", 12);
+				display1.addMapString(unitPtr->getMapLocation().x - 1, unitPtr->getMapLocation().y + 1, "- -", 12);
+			}
+			else {
+				display1.addMapString(unitPtr->getMapLocation().x - 1, unitPtr->getMapLocation().y - 1, "- -", 9);
+				display1.addMapString(unitPtr->getMapLocation().x - 1, unitPtr->getMapLocation().y, " O#", 9);
+				display1.addMapString(unitPtr->getMapLocation().x - 1, unitPtr->getMapLocation().y + 1, "- -", 9);
+			}
+		}
+		else if (unitPtr->getAttacking() == 0) {
+			drawUnitWalk(unitPtr);
+		}
 	}
 }
 

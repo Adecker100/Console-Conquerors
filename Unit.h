@@ -34,8 +34,11 @@ public:
 	void setDeadColor(int);
 	int getWalkCycle();
 	void setWalkCycle(int);
+	int getAttacking();
+	void setAttacking(int);
 private:
 	int walkCycle = 0;
+	int attacking = 0;
 	int deadColor = 0;
 	bool alive = true;
 	duration<double> moveSpeed;

@@ -145,8 +145,6 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="ArcherunitBar.txt" />
-    <Text Include="Brute0.txt" />
-    <Text Include="Brute1.txt" />
     <Text Include="BruteunitBar.txt" />
     <Text Include="castle.txt" />
     <Text Include="CatapultunitBar.txt" />
@@ -163,11 +161,7 @@
     <Text Include="newGame.txt" />
     <Text Include="newGameHeader.txt" />
     <Text Include="selectDifficulty.txt" />
-    <Text Include="Shield Man0.txt" />
-    <Text Include="Shield Man1.txt" />
     <Text Include="Shield ManunitBar.txt" />
-    <Text Include="Sword Guy!0.txt" />
-    <Text Include="Sword Guy!1.txt" />
     <Text Include="Sword Guy!unitBar.txt" />
     <Text Include="Title.txt" />
     <Text Include="tower.txt" />

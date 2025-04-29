@@ -19,7 +19,9 @@ Unit::Unit() {
 Unit::Unit(string inputUnitType, Coordinates inputMapLocation) {
 	setObjectType("Unit");
 	unitType = inputUnitType;
-	setMapLocation(inputMapLocation);
+	if (inputMapLocation.y >= 0) {
+		setMapLocation(inputMapLocation);
+	}
 	lastAttackTime = steady_clock::now() - seconds(5);
 	lastMoveTime = steady_clock::now() - seconds(5);
 
@@ -77,7 +79,7 @@ Unit::Unit(string inputUnitType, Coordinates inputMapLocation) {
 		setHealth(50.0);
 		moveSpeed = duration<double>(1.0);
 		attackSpeed = duration<double>(3.5);
-		attackRange = 1;
+		attackRange = 2;
 		attackDamage = 25;
 		unitCost = 4;
 		attackType = "Precise";
@@ -178,4 +180,12 @@ int Unit::getWalkCycle() {
 
 void Unit::setWalkCycle(int newWalkCycle) {
 	walkCycle = newWalkCycle;
+}
+
+int Unit::getAttacking() {
+	return attacking;
+}
+
+void Unit::setAttacking(int newAttacking) {
+	attacking = newAttacking;
 }
