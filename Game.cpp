@@ -2,6 +2,8 @@
 #include <conio.h>
 #include <random>
 #include <cmath>
+#include <thread>
+#include <fstream>
 #include <iostream>
 #include <Windows.h>
 
@@ -199,11 +201,172 @@ void Game::instructCursorMap() {
 }
 
 void Game::loadGame() {
+	string gameName;
+	string inputString;
+	float inputFloat;
+	double inputDouble;
+	int inputInt;
+	Coordinates tempCoords;
+	display1.clearScreen();
+	display1.addString(5, 10, "What is the name of your saved game?", 15);
+	display1.addString(20, 30, ":", 15);
+	display1.drawScreen();
 
+	cin >> gameName;
+
+	ifstream loadFile;
+
+	loadFile.open(gameName + ".txt");
+
+	if (!loadFile.is_open()) {
+		throw runtime_error("Game save file not found: " + gameName);
+	}
+
+	loadFile >> inputDouble;
+	enemySpawnSpeed = duration<double>(inputDouble);
+	loadFile >> difficulty;
+	loadFile >> selectedUnit;
+	loadFile >> tempCoords.x;
+	loadFile >> tempCoords.y;
+	display1.setMapSize(tempCoords.x, tempCoords.y);
+	loadFile >> money;
+	int inputSize;
+	loadFile >> inputSize;
+
+	for (int i = 0; i < inputSize; i++) {
+		Object tempObject;
+		loadFile >> inputString;
+		tempObject.setObjectType(inputString);
+		loadFile >> inputFloat;
+		tempObject.setHealth(inputFloat);
+		loadFile >> inputInt;
+		tempObject.setEnemy(inputInt);
+		loadFile >> tempCoords.x;
+		loadFile >> tempCoords.y;
+		tempObject.setMapLocation(tempCoords);
+		if (tempObject.getObjectType() == "Unit") {
+			loadFile.ignore();
+			getline(loadFile, inputString);
+			objectVector.push_back(new Unit(inputString, tempObject.getMapLocation()));
+			Unit* unitPtr = dynamic_cast<Unit*>(objectVector.at(objectVector.size() - 1));
+			unitPtr->setHealth(tempObject.getHealth());
+			unitPtr->setEnemy(tempObject.getEnemy());
+			loadFile >> inputInt;
+			unitPtr->setWalkCycle(inputInt);
+			loadFile >> inputInt;
+			unitPtr->setAttacking(inputInt);
+			loadFile >> inputInt;
+			unitPtr->setDeadColor(inputInt);
+			loadFile >> inputInt;
+			unitPtr->setAlive(inputInt);
+		}
+		if (tempObject.getObjectType() == "Tower") {
+			loadFile.ignore();
+			getline(loadFile, inputString);
+			objectVector.push_back(new Tower(inputString, tempObject.getMapLocation()));
+			Tower* towerPtr = dynamic_cast<Tower*>(objectVector.at(objectVector.size() - 1));
+			towerPtr->setHealth(tempObject.getHealth());
+			towerPtr->setEnemy(tempObject.getEnemy());
+			loadFile >> inputInt;
+			int towerNumUnits = inputInt;
+			if (towerNumUnits > 0) {
+				for (int ii = 0; ii < towerNumUnits; ii++) {
+					loadFile >> inputString;
+					tempObject.setObjectType(inputString);
+					loadFile >> inputFloat;
+					tempObject.setHealth(inputFloat);
+					loadFile >> inputInt;
+					tempObject.setEnemy(inputInt);
+					loadFile >> tempCoords.x;
+					loadFile >> tempCoords.y;
+					tempObject.setMapLocation(tempCoords);
+					loadFile.ignore();
+					getline(loadFile, inputString);
+					towerPtr->addUnit(new Unit(inputString, tempObject.getMapLocation()));
+					Unit* unitPtr = towerPtr->getUnit(ii);
+					loadFile >> inputInt;
+					unitPtr->setWalkCycle(inputInt);
+					loadFile >> inputInt;
+					unitPtr->setAttacking(inputInt);
+					loadFile >> inputInt;
+					unitPtr->setDeadColor(inputInt);
+					loadFile >> inputInt;
+					unitPtr->setAlive(inputInt);
+				}
+			}
+		}
+	}
+	loadFile.close();
+
+	display1.clearScreen();
+	display1.addString(5, 10, "Game loaded!", 15);
+	display1.drawScreen();
+	this_thread::sleep_for(milliseconds(500));
+	mainLoop();
 }
 
 void Game::saveGame() {
+	string gameName;
+	display1.clearScreen();
+	display1.addString(5, 10, "What would you like to name your saved game?", 15);
+	display1.addString(20, 30, ":", 15);
+	this_thread::sleep_for(milliseconds(500));
+	display1.drawScreen();
 
+	cin >> gameName;
+
+	ofstream saveFile;
+
+	saveFile.open(gameName + ".txt");
+
+	saveFile << enemySpawnSpeed.count() << endl;
+	saveFile << difficulty << endl;
+	saveFile << selectedUnit << endl;
+	saveFile << display1.getMapSize().x << endl;
+	saveFile << display1.getMapSize().y << endl;
+	saveFile << money << endl;
+	saveFile << objectVector.size() << endl;
+	for (int i = 0; i < objectVector.size(); i++) {
+		saveFile << objectVector.at(i)->getObjectType() << endl;
+		saveFile << objectVector.at(i)->getHealth() << endl;
+		saveFile << objectVector.at(i)->getEnemy() << endl;
+		saveFile << objectVector.at(i)->getMapLocation().x << endl;
+		saveFile << objectVector.at(i)->getMapLocation().y << endl;
+		if (objectVector.at(i)->getObjectType() == "Unit") {
+			Unit* unitPtr = dynamic_cast<Unit*>(objectVector.at(i));
+			saveFile << unitPtr->getUnitType() << endl;
+			saveFile << unitPtr->getWalkCycle() << endl;
+			saveFile << unitPtr->getAttacking() << endl;
+			saveFile << unitPtr->getDeadColor() << endl;
+			saveFile << unitPtr->getAlive() << endl;
+		}
+		if (objectVector.at(i)->getObjectType() == "Tower") {
+			Tower* towerPtr = dynamic_cast<Tower*>(objectVector.at(i));
+
+			saveFile << towerPtr->getTowerType() << endl;
+			saveFile << towerPtr->getNumUnits() << endl;
+			for (int ii = 0; ii < towerPtr->getNumUnits(); ii++) {
+				Unit* unitPtr = dynamic_cast<Unit*>(towerPtr->getUnit(ii));
+				saveFile << unitPtr->getObjectType() << endl;
+				saveFile << unitPtr->getHealth() << endl;
+				saveFile << unitPtr->getEnemy() << endl;
+				saveFile << unitPtr->getMapLocation().x << endl;
+				saveFile << unitPtr->getMapLocation().y << endl;
+				saveFile << unitPtr->getUnitType() << endl;
+				saveFile << unitPtr->getWalkCycle() << endl;
+				saveFile << unitPtr->getAttacking() << endl;
+				saveFile << unitPtr->getDeadColor() << endl;
+				saveFile << unitPtr->getAlive() << endl;
+			}
+		}
+	}
+	saveFile.close();
+
+	display1.clearScreen();
+	display1.addString(5, 10, "Game saved!", 15);
+	display1.drawScreen();
+	this_thread::sleep_for(milliseconds(500));
+	mainLoop();
 }
 
 void Game::genMap() {
@@ -350,6 +513,10 @@ void Game::mainLoop() {
 		renderOverlay();
 		display1.addBorder('#', 15);
 		display1.drawScreen();
+
+		if (isNewKeyPress('0')) {
+			saveGame();
+		}
 	}
 }
 
@@ -729,7 +896,7 @@ void Game::towerAction(Tower* towerPtr, int towerPtrIndex) {
 	else {
 
 		if (towerPtr->getEnemy()) {
-			if (towerPtr->getMaxUnits() >= (towerPtr->getNumUnits() - 1)) {
+			if (towerPtr->getNumUnits() >= (towerPtr->getMaxUnits() - 1)) {
 				for (int i = 0; i < towerPtr->getMaxUnits(); i++) {
 					Unit* unitPtr = towerPtr->getUnit(i);
 					objectVector.push_back(unitPtr);
