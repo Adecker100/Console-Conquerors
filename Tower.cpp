@@ -23,17 +23,19 @@ Tower::Tower(string inputTowerType, Coordinates inputMapLocation) {
 	if (towerType == "Fortified Position") {
 		maxUnits = 10;
 		setHealth(500.0);
-		healthIncrease = 10.0;
-		rangeIncrease = 10.0;
+		maxHealth = 500.0;
+		healthIncrease = 1.1;
+		rangeIncrease = 1.1;
 		towerWidth = 2;
 		towerHeight = 1;
 	}
 
 	if (towerType == "Fort") {
 		maxUnits = 20;
-		setHealth(50.0);
-		healthIncrease = 25.0;
-		rangeIncrease = 20.0;
+		setHealth(750.0);
+		maxHealth = 750.0;
+		healthIncrease = 1.25;
+		rangeIncrease = 1.2;
 		towerWidth = 3;
 		towerHeight = 2;
 	}
@@ -41,8 +43,9 @@ Tower::Tower(string inputTowerType, Coordinates inputMapLocation) {
 	if (towerType == "Tower") {
 		maxUnits = 20;
 		setHealth(1000.0);
-		healthIncrease = 50.0;
-		rangeIncrease = 75.0;
+		maxHealth = 1000.0;
+		healthIncrease = 1.5;
+		rangeIncrease = 1.75;
 		towerWidth = 5;
 		towerHeight = 2;
 	}
@@ -50,8 +53,9 @@ Tower::Tower(string inputTowerType, Coordinates inputMapLocation) {
 	if (towerType == "Castle") {
 		maxUnits = 30;
 		setHealth(2000.0);
-		healthIncrease = 100.0;
-		rangeIncrease = 50.0;
+		maxHealth = 2000.0;
+		healthIncrease = 2.0;
+		rangeIncrease = 1.5;
 		towerWidth = 7;
 		towerHeight = 4;
 	}
@@ -126,4 +130,12 @@ Unit* Tower::getUnit(int index) {
 		throw runtime_error("Tower::getUnit(int index) 'index' out of range of unitVector. index: " + index);
 	}
 	return unitVector.at(index);
+}
+
+float Tower::getMaxHealth() {
+	return maxHealth;
+}
+
+vector<Unit*> Tower::getUnitVector() {
+	return unitVector;
 }

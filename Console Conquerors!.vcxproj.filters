@@ -80,5 +80,8 @@
     <Text Include="BruteunitBar.txt" />
     <Text Include="CatapultunitBar.txt" />
     <Text Include="EngineerunitBar.txt" />
+    <Text Include="fortifiedPositionDestroyed.txt" />
+    <Text Include="fortDestroyed.txt" />
+    <Text Include="towerDestroyed.txt" />
   </ItemGroup>
 </Project>

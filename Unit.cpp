@@ -27,7 +27,7 @@ Unit::Unit(string inputUnitType, Coordinates inputMapLocation) {
 
 	if (unitType == "Sword Guy!") {
 		setHealth(100.0);
-		moveSpeed = duration<double>(1.0);
+		moveSpeed = duration<double>(0.75);
 		attackSpeed = duration<double>(1.5);
 		attackRange = 2;
 		attackDamage = 25;
@@ -47,7 +47,7 @@ Unit::Unit(string inputUnitType, Coordinates inputMapLocation) {
 
 	if (unitType == "Shield Man") {
 		setHealth(150.0);
-		moveSpeed = duration<double>(1.25);
+		moveSpeed = duration<double>(1.0);
 		attackSpeed = duration<double>(2.0);
 		attackRange = 2;
 		attackDamage = 25;
@@ -57,7 +57,7 @@ Unit::Unit(string inputUnitType, Coordinates inputMapLocation) {
 
 	if (unitType == "Brute") {
 		setHealth(200.0);
-		moveSpeed = duration<double>(1.75);
+		moveSpeed = duration<double>(1.25);
 		attackSpeed = duration<double>(3.0);
 		attackRange = 4;
 		attackDamage = 35;
@@ -67,9 +67,9 @@ Unit::Unit(string inputUnitType, Coordinates inputMapLocation) {
 
 	if (unitType == "Catapult") {
 		setHealth(250.0);
-		moveSpeed = duration<double>(2.25);
+		moveSpeed = duration<double>(1.5);
 		attackSpeed = duration<double>(5.0);
-		attackRange = 20;
+		attackRange = 30;
 		attackDamage = 50;
 		unitCost = 5;
 		attackType = "Area";
@@ -80,7 +80,7 @@ Unit::Unit(string inputUnitType, Coordinates inputMapLocation) {
 		moveSpeed = duration<double>(1.0);
 		attackSpeed = duration<double>(3.5);
 		attackRange = 2;
-		attackDamage = 25;
+		attackDamage = 10;
 		unitCost = 4;
 		attackType = "Precise";
 	}

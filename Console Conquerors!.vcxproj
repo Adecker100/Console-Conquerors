@@ -152,7 +152,9 @@
     <Text Include="easy.txt" />
     <Text Include="EngineerunitBar.txt" />
     <Text Include="fort.txt" />
+    <Text Include="fortDestroyed.txt" />
     <Text Include="fortifiedPosition.txt" />
+    <Text Include="fortifiedPositionDestroyed.txt" />
     <Text Include="hard.txt" />
     <Text Include="hardSelected.txt" />
     <Text Include="instructions.txt" />
@@ -165,6 +167,7 @@
     <Text Include="Sword Guy!unitBar.txt" />
     <Text Include="Title.txt" />
     <Text Include="tower.txt" />
+    <Text Include="towerDestroyed.txt" />
     <Text Include="unitBarBox.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

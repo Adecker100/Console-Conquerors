@@ -24,7 +24,10 @@ public:
 	void setTowerHeight(int);
 	void addUnit(Unit*);
 	Unit* getUnit(int);
+	float getMaxHealth();
+	vector<Unit*> getUnitVector();
 private:
+	float maxHealth;
 	int maxUnits;
 	int numUnits;
 	float healthIncrease;
