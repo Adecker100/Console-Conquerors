@@ -116,12 +116,13 @@ void Tower::setTowerHeight(int newTowerHeight) {
 void Tower::addUnit(Unit* newUnit) {
 	if (numUnits < maxUnits) {
 		unitVector.push_back(newUnit);
+		newUnit->setMapLocation(getMapLocation());
 		numUnits++;
 	}
 }
 
 Unit* Tower::getUnit(int index) {
-	if (index < 1 || index > unitVector.size()) {
+	if (index < 0 || index > unitVector.size()) {
 		throw runtime_error("Tower::getUnit(int index) 'index' out of range of unitVector. index: " + index);
 	}
 	return unitVector.at(index);

@@ -13,7 +13,7 @@ struct Coordinates {
 class Object {
 public:
     virtual string getObjectType();
-    Coordinates getMapLocation();
+    virtual Coordinates getMapLocation();
     float getHealth();
     bool getEnemy();
     void setHealth(float);

@@ -7,6 +7,8 @@
 
 using namespace std;
 
+random_device seed;
+mt19937 gen(seed());
 
 void Game::startGame() {
 	display1.drawScreen();
@@ -510,7 +512,7 @@ char Game::waitForInput() {
 	return static_cast<char>(ch);
 }
 
-void Game::unitAction(Unit* unitPtr) {
+void Game::unitAction(Unit* unitPtr, int unitPtrIndex) {
 
 	//If unit is dead, draw the bloody grass 0.0
 	if (unitPtr->getHealth() <= 0) {
@@ -526,10 +528,12 @@ void Game::unitAction(Unit* unitPtr) {
 
 	//If the unit is not dead...
 	else {
-
-		//Check if the unit is in attack range of an enemy
 		bool canAttack = false;
+		bool inTower = false;
+
 		for (int i = 0; i < objectVector.size(); i++) {
+
+			//Check if the unit is in attack range of an enemy
 			if (objectVector.at(i)->getEnemy() != unitPtr->getEnemy()) {
 				if (abs(objectVector.at(i)->getMapLocation().x - unitPtr->getMapLocation().x) <= unitPtr->getAttackRange()) {
 					if (abs(objectVector.at(i)->getMapLocation().y - unitPtr->getMapLocation().y) <= (unitPtr->getAttackRange() / 2)) {
@@ -540,106 +544,259 @@ void Game::unitAction(Unit* unitPtr) {
 							}
 						}
 						if (objectVector.at(i)->getObjectType() == "Unit") {
-							Unit* unitPtr = dynamic_cast<Unit*>(objectVector.at(i));
-							if (unitPtr->getHealth() > 0) {
+							Unit* loopUnitPtr = dynamic_cast<Unit*>(objectVector.at(i));
+							if (loopUnitPtr->getHealth() > 0) {
 								canAttack = true;
 							}
 						}
 					}
 				}
 			}
-		}
-		if (canAttack) {
-			if ((steady_clock::now() - unitPtr->getLastAttackTime()) >= unitPtr->getAttackSpeed()) {
-				unitPtr->setAttacking(1);
-				Object* closestEnemy = nullptr;
-				float closestEnemyDist = 100.0;
-				float enemyDist = 0.0;
-				float enemyXDist = 0.0;
-				float enemyYDist = 0.0;
 
-				//Find out which enemy unit is the closest
-				for (int i = 0; i < objectVector.size(); i++) {
-					if (objectVector.at(i)->getEnemy() != unitPtr->getEnemy()) {
-						if (abs(objectVector.at(i)->getMapLocation().x - unitPtr->getMapLocation().x) <= unitPtr->getAttackRange()) {
-							if (abs(objectVector.at(i)->getMapLocation().y - unitPtr->getMapLocation().y) <= (unitPtr->getAttackRange() / 2)) {
-								enemyXDist = abs(objectVector.at(i)->getMapLocation().x - unitPtr->getMapLocation().x);
-								enemyYDist = abs(objectVector.at(i)->getMapLocation().y - unitPtr->getMapLocation().y) / 2.0;
-								enemyDist = sqrt((enemyXDist * enemyXDist) + (enemyYDist * enemyYDist));
-								if (enemyDist < closestEnemyDist) {
-									closestEnemyDist = enemyDist;
-									closestEnemy = objectVector.at(i);
+			//Check if the unit can enter a tower (catapults cannot enter towers)
+			if (unitPtr->getUnitType() != "Catapult") {
+				if (objectVector.at(i)->getObjectType() == "Tower") {
+					Tower* towerPtr = dynamic_cast<Tower*>(objectVector.at(i));
+					if (abs(towerPtr->getMapLocation().x - unitPtr->getMapLocation().x) <= (towerPtr->getTowerWidth() + 1)) {
+						if (abs(towerPtr->getMapLocation().y - unitPtr->getMapLocation().y) <= (towerPtr->getTowerHeight() + 1)) {
+							if (towerPtr->getNumUnits() == 0) {
+								towerPtr->addUnit(unitPtr);
+								towerPtr->setEnemy(unitPtr->getEnemy());
+								objectVector.erase(objectVector.begin() + unitPtrIndex);
+								inTower = true;
+							}
+							else if (towerPtr->getEnemy() == unitPtr->getEnemy()) {
+								if (towerPtr->getNumUnits() < towerPtr->getMaxUnits()) {
+									towerPtr->addUnit(unitPtr);
+									objectVector.erase(objectVector.begin() + unitPtrIndex);
+									inTower = true;
 								}
 							}
 						}
 					}
 				}
-				if (unitPtr->getAttackType() == "Precise") {
-					if (closestEnemy->getObjectType() == "Unit") {
-						closestEnemy->setHealth(closestEnemy->getHealth() - unitPtr->getAttackDamage());
-						unitPtr->setLastAttackTime(steady_clock::now());
-					}
-					if (closestEnemy->getObjectType() == "Tower") {
-
-					}
-				}
-				if (unitPtr->getAttackType() == "Area") {
-
-				}
 			}
-			else {
-				if ((steady_clock::now() - unitPtr->getLastAttackTime()) >= duration<double>(0.5)) {
-					unitPtr->setAttacking(0);
-				}
-			}
-			drawUnitAttack(unitPtr);
 		}
+		if (inTower == false) {
+			if (canAttack) {
+				if ((steady_clock::now() - unitPtr->getLastAttackTime()) >= unitPtr->getAttackSpeed()) {
+					unitPtr->setAttacking(1);
+					Object* closestEnemy = nullptr;
+					float closestEnemyDist = 100.0;
+					float enemyDist = 0.0;
+					float enemyXDist = 0.0;
+					float enemyYDist = 0.0;
 
-		//If not in attack range of anything, move instead
-		else {
-			if ((steady_clock::now() - unitPtr->getLastMoveTime()) >= unitPtr->getMoveSpeed()) {
-				Coordinates unitPosition = unitPtr->getMapLocation();
-				if (unitPtr->getEnemy()) {
-					if (unitPosition.x > 12) {
-						unitPosition.x--;
-					}
-					else {
-						if (unitPosition.y < (display1.getMapSize().y) / 2) {
-							unitPosition.y++;
+					//Find out which enemy unit is the closest
+					for (int i = 0; i < objectVector.size(); i++) {
+						if (objectVector.at(i)->getEnemy() != unitPtr->getEnemy()) {
+							if (abs(objectVector.at(i)->getMapLocation().x - unitPtr->getMapLocation().x) <= unitPtr->getAttackRange()) {
+								if (abs(objectVector.at(i)->getMapLocation().y - unitPtr->getMapLocation().y) <= (unitPtr->getAttackRange() / 2)) {
+									if (objectVector.at(i)->getObjectType() == "Tower") {
+										Tower* loopTowerPtr = dynamic_cast<Tower*>(objectVector.at(i));
+										if (loopTowerPtr->getNumUnits() > 0) {
+											enemyXDist = abs(loopTowerPtr->getMapLocation().x - unitPtr->getMapLocation().x);
+											enemyYDist = abs(loopTowerPtr->getMapLocation().y - unitPtr->getMapLocation().y) / 2.0;
+											enemyDist = sqrt((enemyXDist * enemyXDist) + (enemyYDist * enemyYDist));
+											if (enemyDist < closestEnemyDist) {
+												closestEnemyDist = enemyDist;
+												closestEnemy = objectVector.at(i);
+											}
+										}
+									}
+									if (objectVector.at(i)->getObjectType() == "Unit") {
+										Unit* loopUnitPtr = dynamic_cast<Unit*>(objectVector.at(i));
+										if (loopUnitPtr->getHealth() > 0) {
+											enemyXDist = abs(loopUnitPtr->getMapLocation().x - unitPtr->getMapLocation().x);
+											enemyYDist = abs(loopUnitPtr->getMapLocation().y - unitPtr->getMapLocation().y) / 2.0;
+											enemyDist = sqrt((enemyXDist * enemyXDist) + (enemyYDist * enemyYDist));
+											if (enemyDist < closestEnemyDist) {
+												closestEnemyDist = enemyDist;
+												closestEnemy = objectVector.at(i);
+											}
+										}
+									}
+								}
+							}
 						}
-						else {
-							unitPosition.y--;
+					}
+					if (unitPtr->getAttackType() == "Precise") {
+						if (closestEnemy->getObjectType() == "Unit") {
+							closestEnemy->setHealth(closestEnemy->getHealth() - unitPtr->getAttackDamage());
+							unitPtr->setLastAttackTime(steady_clock::now());
+						}
+						if (closestEnemy->getObjectType() == "Tower") {
+							Tower* towerPtr = dynamic_cast<Tower*>(closestEnemy);
+							uniform_int_distribution<int> randUnit(0, towerPtr->getNumUnits() - 1);
+							Unit* towerUnitPtr = towerPtr->getUnit(randUnit(gen));
+							towerUnitPtr->setHealth(towerUnitPtr->getHealth() - (unitPtr->getAttackDamage() * 0.9));
+							towerPtr->setHealth(towerPtr->getHealth() - (unitPtr->getAttackDamage() * 0.1));
+						}
+					}
+					if (unitPtr->getAttackType() == "Area") {
+						for (int i = 0; i < objectVector.size(); i++) {
+							if (abs(objectVector.at(i)->getMapLocation().x - closestEnemy->getMapLocation().x) <= 2) {
+								if (abs(objectVector.at(i)->getMapLocation().y - closestEnemy->getMapLocation().y) <= 1) {
+									if (objectVector.at(i)->getObjectType() == "Unit") {
+										objectVector.at(i)->setHealth(objectVector.at(i)->getHealth() - unitPtr->getAttackDamage());
+									}
+									if (objectVector.at(i)->getObjectType() == "Tower") {
+										Tower* towerPtr = dynamic_cast<Tower*>(objectVector.at(i));
+										for (int towerUnit = 0; towerUnit < towerPtr->getNumUnits(); towerUnit++) {
+											Unit* towerUnitPtr = towerPtr->getUnit(towerUnit);
+											towerUnitPtr->setHealth(towerUnitPtr->getHealth() - (unitPtr->getAttackDamage() * 0.1));
+										}
+										towerPtr->setHealth(towerPtr->getHealth() - (unitPtr->getAttackDamage() * 0.9));
+									}
+									unitPtr->setLastAttackTime(steady_clock::now());
+								}
+							}
 						}
 					}
 				}
 				else {
-					if (unitPosition.x < display1.getMapSize().x - 12) {
-						unitPosition.x++;
-					}
-					else {
-						if (unitPosition.y < (display1.getMapSize().y) / 2) {
-							unitPosition.y++;
-						}
-						else {
-							unitPosition.y--;
-						}
+					if ((steady_clock::now() - unitPtr->getLastAttackTime()) >= duration<double>(0.5)) {
+						unitPtr->setAttacking(0);
 					}
 				}
-				if (unitPtr->getWalkCycle() == 0) { unitPtr->setWalkCycle(1); }
-				else { unitPtr->setWalkCycle(0); }
-				unitPtr->setMapLocation(unitPosition);
-				unitPtr->setLastMoveTime(steady_clock::now());
+				drawUnitAttack(unitPtr);
 			}
-			drawUnitWalk(unitPtr);
+
+			//If not in attack range of anything, move instead
+			else {
+				if ((steady_clock::now() - unitPtr->getLastMoveTime()) >= unitPtr->getMoveSpeed()) {
+					Coordinates unitPosition = unitPtr->getMapLocation();
+					if (unitPtr->getEnemy()) {
+						if (unitPosition.x > 12) {
+							unitPosition.x--;
+						}
+						else {
+							if (unitPosition.y < (display1.getMapSize().y) / 2) {
+								unitPosition.y++;
+							}
+							else {
+								unitPosition.y--;
+							}
+						}
+					}
+					else {
+						if (unitPosition.x < display1.getMapSize().x - 12) {
+							unitPosition.x++;
+						}
+						else {
+							if (unitPosition.y < (display1.getMapSize().y) / 2) {
+								unitPosition.y++;
+							}
+							else {
+								unitPosition.y--;
+							}
+						}
+					}
+					if (unitPtr->getWalkCycle() == 0) { unitPtr->setWalkCycle(1); }
+					else { unitPtr->setWalkCycle(0); }
+					unitPtr->setMapLocation(unitPosition);
+					unitPtr->setLastMoveTime(steady_clock::now());
+				}
+				drawUnitWalk(unitPtr);
+			}
 		}
 	}
 }
 
-void Game::towerAction(Tower* towerPtr) {
+void Game::towerAction(Tower* towerPtr, int towerPtrIndex) {
 	if (towerPtr->getHealth() <= 0) {
 		
 	}
 	else {
+
+		if (towerPtr->getNumUnits() > 0) {
+			for (int i = 0; i < towerPtr->getNumUnits(); i++) {
+				Unit* unitPtr = dynamic_cast<Unit*>(towerPtr->getUnit(i));
+				bool canAttack = false;
+				Object* closestEnemy = nullptr;
+				float closestEnemyDist = 1000.0;
+				float enemyDist = 0.0;
+				float enemyXDist = 0.0;
+				float enemyYDist = 0.0;
+
+				for (int ii = 0; ii < objectVector.size(); ii++) {
+
+					//Check if the unit is in attack range of an enemy + find the closest enemy
+					if (objectVector.at(ii)->getEnemy() != unitPtr->getEnemy()) {
+						if (abs(objectVector.at(ii)->getMapLocation().x - unitPtr->getMapLocation().x) <= ((unitPtr->getAttackRange() + towerPtr->getRangeIncrease()) + towerPtr->getTowerWidth())) {
+							if (abs(objectVector.at(ii)->getMapLocation().y - unitPtr->getMapLocation().y) <= (((unitPtr->getAttackRange() / 2) + towerPtr->getRangeIncrease()) + towerPtr->getTowerHeight())) {
+								if (objectVector.at(ii)->getObjectType() == "Tower") {
+									Tower* loopTowerPtr = dynamic_cast<Tower*>(objectVector.at(ii));
+									if (loopTowerPtr->getNumUnits() > 0) {
+										canAttack = true;
+										enemyXDist = abs(loopTowerPtr->getMapLocation().x - unitPtr->getMapLocation().x);
+										enemyYDist = abs(loopTowerPtr->getMapLocation().y - unitPtr->getMapLocation().y) / 2.0;
+										enemyDist = sqrt((enemyXDist * enemyXDist) + (enemyYDist * enemyYDist));
+										if (enemyDist < closestEnemyDist) {
+											closestEnemyDist = enemyDist;
+											closestEnemy = objectVector.at(ii);
+										}
+									}
+								}
+								if (objectVector.at(ii)->getObjectType() == "Unit") {
+									Unit* loopUnitPtr = dynamic_cast<Unit*>(objectVector.at(ii));
+									if (loopUnitPtr->getHealth() > 0) {
+										canAttack = true;
+										enemyXDist = abs(loopUnitPtr->getMapLocation().x - unitPtr->getMapLocation().x);
+										enemyYDist = abs(loopUnitPtr->getMapLocation().y - unitPtr->getMapLocation().y) / 2.0;
+										enemyDist = sqrt((enemyXDist * enemyXDist) + (enemyYDist * enemyYDist));
+										if (enemyDist < closestEnemyDist) {
+											closestEnemyDist = enemyDist;
+											closestEnemy = objectVector.at(ii);
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+
+				if (canAttack) {
+					if ((steady_clock::now() - unitPtr->getLastAttackTime()) >= unitPtr->getAttackSpeed()) {
+
+						//Execute attack
+						if (unitPtr->getAttackType() == "Precise") {
+							if (closestEnemy->getObjectType() == "Unit") {
+								closestEnemy->setHealth(closestEnemy->getHealth() - unitPtr->getAttackDamage());
+								unitPtr->setLastAttackTime(steady_clock::now());
+							}
+							if (closestEnemy->getObjectType() == "Tower") {
+								Tower* loopTowerPtr = dynamic_cast<Tower*>(closestEnemy);
+								uniform_int_distribution<int> randUnit(0, loopTowerPtr->getNumUnits() - 1);
+								Unit* towerUnitPtr = loopTowerPtr->getUnit(randUnit(gen));
+								towerUnitPtr->setHealth(towerUnitPtr->getHealth() - (unitPtr->getAttackDamage() * 0.9));
+								loopTowerPtr->setHealth(loopTowerPtr->getHealth() - (unitPtr->getAttackDamage() * 0.1));
+							}
+						}
+						if (unitPtr->getAttackType() == "Area") {
+							for (int vi = 0; vi < objectVector.size(); vi++) {
+								if (abs(objectVector.at(vi)->getMapLocation().x - closestEnemy->getMapLocation().x) <= 2) {
+									if (abs(objectVector.at(vi)->getMapLocation().y - closestEnemy->getMapLocation().y) <= 1) {
+										if (objectVector.at(vi)->getObjectType() == "Unit") {
+											objectVector.at(vi)->setHealth(objectVector.at(vi)->getHealth() - unitPtr->getAttackDamage());
+										}
+										if (objectVector.at(vi)->getObjectType() == "Tower") {
+											Tower* loopTowerPtr = dynamic_cast<Tower*>(objectVector.at(vi));
+											for (int towerUnit = 0; towerUnit < loopTowerPtr->getNumUnits(); towerUnit++) {
+												Unit* towerUnitPtr = loopTowerPtr->getUnit(towerUnit);
+												towerUnitPtr->setHealth(towerUnitPtr->getHealth() - (unitPtr->getAttackDamage() * 0.1));
+											}
+											loopTowerPtr->setHealth(loopTowerPtr->getHealth() - (unitPtr->getAttackDamage() * 0.9));
+										}
+										unitPtr->setLastAttackTime(steady_clock::now());
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
 
 		//Create appropriate flag color for each tower
 		if (towerPtr->getNumUnits() == 0) {
@@ -668,19 +825,17 @@ void Game::towerAction(Tower* towerPtr) {
 			display1.addMapGraphic(towerPtr->getMapLocation().x - towerPtr->getTowerWidth(), towerPtr->getMapLocation().y - towerPtr->getTowerHeight(), "castle.txt", 8);
 		}
 	}
-
-	
 }
 
 void Game::actionLoop() {
 	for (int i = 0; i < objectVector.size(); i++) {
 		if (objectVector.at(i)->getObjectType() == "Unit") {
 			Unit* unitPtr = dynamic_cast<Unit*>(objectVector.at(i));
-			unitAction(unitPtr);
+			unitAction(unitPtr, i);
 		}
 		else if (objectVector.at(i)->getObjectType() == "Tower") {
 			Tower* towerPtr = dynamic_cast<Tower*>(objectVector.at(i));
-			towerAction(towerPtr);
+			towerAction(towerPtr, i);
 		}
 	}
 }
@@ -766,8 +921,6 @@ void Game::cursorAction() {
 
 void Game::enemySpawn() {
 	if (steady_clock::now() - lastEnemySpawnTime >= enemySpawnSpeed) {
-		random_device seed;
-		mt19937 gen(seed());
 		uniform_int_distribution<int> probRange(1, 100);
 		uniform_int_distribution<int> coordRange(2, display1.getMapSize().y - 2);
 

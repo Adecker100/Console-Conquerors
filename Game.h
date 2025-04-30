@@ -31,8 +31,8 @@ public:
 	bool isKeyPressed(int);
 	bool isNewKeyPress(int);
 	char waitForInput();
-	void unitAction(Unit*);
-	void towerAction(Tower*);
+	void unitAction(Unit*, int);
+	void towerAction(Tower*, int);
 	void actionLoop();
 	void moveViewer();
 	void cursorAction();
