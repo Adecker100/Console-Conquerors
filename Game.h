@@ -45,6 +45,7 @@ private:
 	time_point<steady_clock> lastCursorYMoveTime = steady_clock::now();
 	time_point<steady_clock> lastEnemySpawnTime = steady_clock::now();
 	time_point<steady_clock> lastMoneyTime = steady_clock::now();
+	time_point<steady_clock> lastFrameTime = steady_clock::now();
 	duration<double> enemySpawnSpeed;
 	Object* overlayObject = nullptr;
 	string difficulty;
@@ -53,5 +54,6 @@ private:
 	Cursor cursor1;
 	vector<Object*> objectVector;
 	int money = 0;
+	int frames = 0;
 };
 
