@@ -509,7 +509,7 @@ void Game::mainLoop() {
 		display1.renderViewer();
 		renderUnitBar();
 		renderOverlay();
-		display1.addString(135, 3, "FPS: " + to_string(framesPerSecond), 15);
+		display1.addString(135, 4, "FPS: " + to_string(framesPerSecond), 15);
 		display1.addBorder('#', 15);
 		display1.drawScreen();
 		frames++;
@@ -756,7 +756,7 @@ void Game::unitAction(Unit* unitPtr, int unitPtrIndex) {
 				if ((steady_clock::now() - unitPtr->getLastAttackTime()) >= unitPtr->getAttackSpeed()) {
 					unitPtr->setAttacking(1);
 					Object* closestEnemy = nullptr;
-					float closestEnemyDist = 100.0;
+					float closestEnemyDist = 1000.0;
 					float enemyDist = 0.0;
 					float enemyXDist = 0.0;
 					float enemyYDist = 0.0;
@@ -773,8 +773,8 @@ void Game::unitAction(Unit* unitPtr, int unitPtrIndex) {
 												enemyXDist = abs(loopTowerPtr->getMapLocation().x - unitPtr->getMapLocation().x);
 												enemyYDist = abs(loopTowerPtr->getMapLocation().y - unitPtr->getMapLocation().y) / 2.0;
 												enemyDist = (enemyXDist * enemyXDist) + (enemyYDist * enemyYDist);
-												if (enemyDist < (closestEnemyDist * closestEnemyDist)) {
-													closestEnemyDist = sqrt(enemyDist);
+												if (enemyDist < closestEnemyDist) {
+													closestEnemyDist = enemyDist;
 													closestEnemy = objectVector.at(i);
 												}
 											}
@@ -784,8 +784,8 @@ void Game::unitAction(Unit* unitPtr, int unitPtrIndex) {
 											enemyXDist = abs(loopUnitPtr->getMapLocation().x - unitPtr->getMapLocation().x);
 											enemyYDist = abs(loopUnitPtr->getMapLocation().y - unitPtr->getMapLocation().y) / 2.0;
 											enemyDist = (enemyXDist * enemyXDist) + (enemyYDist * enemyYDist);
-											if (enemyDist < (closestEnemyDist * closestEnemyDist)) {
-												closestEnemyDist = sqrt(enemyDist);
+											if (enemyDist < closestEnemyDist) {
+												closestEnemyDist = enemyDist;
 												closestEnemy = objectVector.at(i);
 											}
 										}
@@ -942,8 +942,8 @@ void Game::towerAction(Tower* towerPtr, int towerPtrIndex) {
 													enemyXDist = abs(loopTowerPtr->getMapLocation().x - unitPtr->getMapLocation().x);
 													enemyYDist = abs(loopTowerPtr->getMapLocation().y - unitPtr->getMapLocation().y) / 2.0;
 													enemyDist = (enemyXDist * enemyXDist) + (enemyYDist * enemyYDist);
-													if (enemyDist < (closestEnemyDist * closestEnemyDist)) {
-														closestEnemyDist = sqrt(enemyDist);
+													if (enemyDist < closestEnemyDist) {
+														closestEnemyDist = enemyDist;
 														closestEnemy = objectVector.at(ii);
 													}
 												}
@@ -954,8 +954,8 @@ void Game::towerAction(Tower* towerPtr, int towerPtrIndex) {
 												enemyXDist = abs(loopUnitPtr->getMapLocation().x - unitPtr->getMapLocation().x);
 												enemyYDist = abs(loopUnitPtr->getMapLocation().y - unitPtr->getMapLocation().y) / 2.0;
 												enemyDist = (enemyXDist * enemyXDist) + (enemyYDist * enemyYDist);
-												if (enemyDist < (closestEnemyDist * closestEnemyDist)) {
-													closestEnemyDist = sqrt(enemyDist);
+												if (enemyDist < closestEnemyDist) {
+													closestEnemyDist = enemyDist;
 													closestEnemy = objectVector.at(ii);
 												}
 											}
@@ -1047,15 +1047,19 @@ void Game::towerAction(Tower* towerPtr, int towerPtrIndex) {
 }
 
 void Game::actionLoop() {
+	
 	for (int i = 0; i < objectVector.size(); i++) {
+		t1 = steady_clock::now();
 		if (objectVector.at(i)->getObjectType() == "Unit") {
 			Unit* unitPtr = dynamic_cast<Unit*>(objectVector.at(i));
 			unitAction(unitPtr, i);
+			t2 = steady_clock::now();
 		}
 		else if (objectVector.at(i)->getObjectType() == "Tower") {
 			Tower* towerPtr = dynamic_cast<Tower*>(objectVector.at(i));
 			towerAction(towerPtr, i);
 		}
+		milliseconds dur = duration_cast<milliseconds>(t2 - t1);
 	}
 }
 

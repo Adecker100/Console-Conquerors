@@ -46,6 +46,7 @@ private:
 	time_point<steady_clock> lastEnemySpawnTime = steady_clock::now();
 	time_point<steady_clock> lastMoneyTime = steady_clock::now();
 	time_point<steady_clock> lastFrameTime = steady_clock::now();
+	time_point<steady_clock> t1, t2, t3, t4, t5, t6, t7, t8, t9, t10 = steady_clock::now();
 	duration<double> enemySpawnSpeed;
 	Object* overlayObject = nullptr;
 	string difficulty;
